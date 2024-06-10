@@ -1,0 +1,10 @@
+{
+    "db": {
+      "host": "127.0.0.1",
+      "port": 5432,
+      "name": "mos-test-db",
+      "user": "postgres",
+      "password": "rumirumi"
+    }
+  }
+  

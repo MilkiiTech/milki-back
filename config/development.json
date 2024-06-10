@@ -1,0 +1,10 @@
+{
+    "db": {
+      "host": "127.0.0.1",
+      "port": 5432,
+      "name": "milki-db",
+      "user": "postgres",
+      "password": "rumirumi"
+    }
+  }
+  

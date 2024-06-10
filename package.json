@@ -1,0 +1,35 @@
+{
+  "name": "nodepro",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "cross-env NODE_ENV=test node index.js --port 8080",
+    "dev": "cross-env NODE_ENV=development nodemon index.js --port 8080",
+    "prod": "cross-env NODE_ENV=production node index.js --port 8080",
+    "register-superadmin": "cross-env NODE_ENV=development node config/command.js",
+    "populate-role": "cross-env NODE_ENV=development node config/create-role-permission-command.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "commander": "^12.1.0",
+    "compression": "^1.7.4",
+    "convict": "^6.2.4",
+    "convict-format-with-validator": "^6.2.0",
+    "cookie-session": "^2.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "joi": "^17.13.1",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.3",
+    "pg": "^8.12.0",
+    "sequelize": "^6.37.3"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}
