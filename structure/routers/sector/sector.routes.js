@@ -4,15 +4,16 @@ const {
   create,
   findAll,
   findOne,
+  update,
   deleteOne
-} = require("../../controllers/woreda/woreda.controller");
+} = require("../../controllers/sector/sector.controller");
 const {
-createWoredaValidation
-} = require("../../validation/woreda/woreda.validation");
+createSectorValidation
+} = require("../../validation/sector/sector.validation");
 const { checkPermission } = require("../../../middlewares/accessControl");
-router.post("/create",checkPermission('can_create_woreda_admin'),createWoredaValidation, create);
-router.get("/get",checkPermission('can_view_woreda_admin'), findAll);
-router.get("/get/:woreda_id",checkPermission('can_view_woreda_admin'), findOne);
+router.post("/create",checkPermission('can_create_sector'),createSectorValidation, create);
+router.get("/get",checkPermission('can_view_sector'), findAll);
+router.get("/get/:sector_id",checkPermission('can_view_sector'), findOne);
 router.delete("/delete/:woreda_id",checkPermission('can_delete_woreda_admin'), deleteOne);
 
 module.exports = router;

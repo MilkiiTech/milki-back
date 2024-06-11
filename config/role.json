@@ -41,9 +41,15 @@
     "can_view_woreda_admin":"can_view_woreda_admin",
     "can_update_woreda_admin":"can_update_woreda_admin",
     "can_delete_woreda_admin":"can_delete_woreda_admin"
+  },
+  {
+    "can_create_sector":"can_create_sector",
+    "can_view_sector":"can_view_sector",
+    "can_update_sector":"can_update_sector",
+    "can_delete_sector":"can_delete_sector"
   }
  ],
  "roles":[
-  "SUPER_ADMIN","MANAGER","LEADER","MEMBERS","ZONE_ADMIN","WOREDA_ADMIN","MANAGEMENT"
+  "SUPER_ADMIN","MANAGER","LEADER","MEMBERS","ZONE_ADMIN","WOREDA_ADMIN","MANAGEMENT", "ZONE_HR", "ZONE_MANAGER","WOREDA_HR", "WOREDA_MANAGER"
  ]
 }

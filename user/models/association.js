@@ -29,6 +29,10 @@ Woreda.belongsTo(User, {as:"updatedBy"});
 Zone.hasMany(Sector, { foreignKey: 'zone_id' });
 Woreda.hasMany(Sector, { foreignKey: 'woreda_id' });
 
+// Define Association Of Sector and Users this association defines which User works in which Sector
+Sector.hasMany(User, {foreignKey:'user_id', as:"users"});
+User.belongsTo(Sector, {foreignKey:'user_id', as:"sector"});
+// Define Association of Sector to Woreda and Zone
 Sector.belongsTo(Zone, { foreignKey: 'zone_id' });
 Sector.belongsTo(Woreda, { foreignKey: 'woreda_id' });
 // Define Association to track Who created and updated Woreda
