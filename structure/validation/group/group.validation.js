@@ -20,9 +20,32 @@ const createGroupValidation = (req, res, next) => {
   
     next();
   };
+  const addMembersToGroupValidation  = (req, res, next) => {
+    // Define Joi schema for the form data
+    
+    const schema = Joi.object({
+      members_id:Joi.array().required()
+    });
 
+    const paramsSchema = Joi.object({
+        group_id:Joi.number().positive().required()
+      });
+    // Validate the query parameters
+    const { error: queryError } = paramsSchema.validate(req.params);
+    if (queryError) {
+      return res.status(400).json({ error: queryError.details[0].message });
+    }
+    // Validate the request body
+    const { error } = schema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+  
+    next();
+  };
 
 module.exports = {
-    createGroupValidation, 
+    createGroupValidation,
+    addMembersToGroupValidation
     
   };

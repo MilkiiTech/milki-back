@@ -4,6 +4,7 @@ const {User, Role, Zone, Sector, Woreda, Group}= require("../../../user/models/a
 const bcrypt = require('bcrypt');
 const CustomError = require("../../../error/customError");
 const { v4: uuidv4 } = require('uuid');
+const {Op}=require("sequelize");
 exports.create = async (req, res, next)=>{
     const {group_name, leader_id, members_id, sector_id}=req.body;
     try {
@@ -126,5 +127,48 @@ exports.deleteOne = async (req, res,next)=>{
         return res.status(200).json(sector);
     } catch (error) {
         next(error)
+    }
+}
+exports.addMembers = async (req, res, next)=>{
+    const {group_id}=req.params;
+    const {members_id}=req.body;
+    try {
+        const group= await Group.findByPk(group_id, {include:{model:Sector, as:"sector"}});
+        if (!group) {
+            throw new CustomError(`Group with Id: ${group_id} is not found`, 404)
+        }
+        const members = await User.findAll(
+            {
+            where:{
+            user_id:{
+            [Op.in]:members_id
+            },
+        },
+        include:{
+            model:Sector,
+            as:"sector",
+            where:{
+                sector_id:group.sector.sector_id
+            }
+        }
+
+    });
+        console.log(members, "Members of Sector");
+        if (! members) {
+            throw new CustomError(`One or More user is not member of the group sector`, 404);
+        }
+        await group.setMembers(members);
+        return res.status(200).json(group);
+
+    } catch (error) {
+        console.log(error, "error")
+        next(error);
+    }
+}
+exports.getMembers = async (req, res, next)=>{
+    try {
+        
+    } catch (error) {
+        next(error);
     }
 }
