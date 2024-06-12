@@ -4,6 +4,7 @@ const Permission = require("./permission");
 const Zone = require("../../structure/models/zone")
 const Woreda = require("../../structure/models/woreda");
 const Sector = require("../../structure/models/sector");
+const Group = require("../../structure/models/group")
 // Define the association of Users to Roles
 Role.belongsToMany(User, { through: 'UsersRoles' });
 User.belongsToMany(Role, { through: 'UsersRoles' });
@@ -30,8 +31,8 @@ Zone.hasMany(Sector, { foreignKey: 'zone_id' });
 Woreda.hasMany(Sector, { foreignKey: 'woreda_id' });
 
 // Define Association Of Sector and Users this association defines which User works in which Sector
-Sector.hasMany(User, {foreignKey:'user_id', as:"users"});
-User.belongsTo(Sector, {foreignKey:'user_id', as:"sector"});
+Sector.hasMany(User, {foreignKey:'sector_id', as:"users"});
+User.belongsTo(Sector, {foreignKey:'sector_id', as:"sector"});
 // Define Association of Sector to Woreda and Zone
 Sector.belongsTo(Zone, { foreignKey: 'zone_id' });
 Sector.belongsTo(Woreda, { foreignKey: 'woreda_id' });
@@ -39,7 +40,17 @@ Sector.belongsTo(Woreda, { foreignKey: 'woreda_id' });
 Sector.belongsTo(User, {as:"createdBy"});
 Sector.belongsTo(User, {as:"updatedBy"});
 
-module.exports = { User, Role, Permission, Zone, Woreda , Sector};
+// Group and User association 
+Group.belongsTo(User, {as:"leader"});
+Group.belongsTo(User, {as:"createdBy"});
+Group.belongsTo(User, {as:"updatedBy"});
+Group.belongsToMany(User, { through: 'GroupMembers', as: 'members' });
+
+// Group and Sector Association
+Sector.hasMany(Group, {foreignKey:'sector_id', as:"groups"});
+Group.belongsTo(Sector, {foreignKey:'sector_id', as:"sector"});
+
+module.exports = { User, Role, Permission, Zone, Woreda , Sector, Group};
 
 
 

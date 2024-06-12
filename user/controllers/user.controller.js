@@ -1,11 +1,12 @@
 const CustomError = require("../../error/customError");
-const Group = require("../models/group");
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const config = require('../../config/config');
-const {Role, User}=require("../models/association")
+const {Role, User, Sector, Group }=require("../models/association")
 const Permission = require("../models/permission");
+const {generatePassword}= require("../../utils/utils")
 const {Op}=require("sequelize");
+const sequelize = require("../../config/db");
 // user signup controller 
 exports.registerUser = async (req, res, next)=>{
     const {username, email, phone_number, password}=req.body;
@@ -230,4 +231,92 @@ exports.assignRoleToUser = async (req, res,  next)=>{
     }
 }
 
+exports.createUser = async (req, res, next)=>{
+    try {
+        let transaction;
+        const {username, email, phone_number, sector_id, role_id}=req.body;
+        console.log(req.body);
+        let password = generatePassword().toString();
+        console.log(password, "password");
+        const hashed_password=await bcrypt.hash(password, 10);
+        transaction=sequelize.transaction();
+        const result = await sequelize.transaction(async(t)=>{
+            const sector = await Sector.findByPk(sector_id, {transaction:t});
+            const role = await Role.findByPk(role_id, {transaction:t});
+            if (sector==null || role== null) {
+                t.rollback();
+                throw new CustomError(`Role or Sector  is Not Found With Id: ${zone_id}`, 404);
+            }
+            const user = await User.create({
+                username,
+                email,
+                password:hashed_password,
+                phone_number
+            }, {transaction:t})
+            await user.addRole(role, {transaction:t});
+            await user.setSector(sector, {transaction:t});
+            await sector.addUser(user, {transaction:t});
+        return res.status(201).json(user);
+        })
+    } catch (error) {
+        next(error);
+    }
+}
+exports.assignUserToSector = async (req, res,  next)=>{
+    try {
+        const { user_id, sector_id, role_id}=req.body;
+        const sector = await Sector.findByPk(sector_id);
+        const user = await User.findByPk(user_id, {include:{model:Sector, as:'sector'}});
+       
+        const role = await Role.findByPk(role_id, {include:{
+            model:User
+        }});
+        
+        if (! sector) {
+            throw new CustomError(`Sector With Id: ${sector_id} Not Found`)
+        }
+        if (! user) {
+            throw new CustomError(`User With Id: ${user_id} Not Found`)
+        }
+        if (!role) {
+            throw new CustomError(`Role With Id: ${role} Not Found`) 
+        }
+        
+        // await sector.removeUser();
+        await user.setSector(sector);
+        await sector.addUser(user);
+        await user.setRoles([]);
+        await user.addRole(role);
+        return res.status(200).json(sector);
+    } catch (error) {
+        console.log(error,"Error")
+        next(error)
+    }
+}
+exports.removeUserFromSector = async (req, res,next)=>{
+    try {
+        const {user_id, sector_id}=req.body;
+        const user = await User.findByPk(user_id,{include:{
+            model:Role,
 
+        }});
+      
+        const sector=await Sector.findByPk(sector_id);
+        if (!user || !sector) {
+            throw new CustomError("Not Found", 404);
+        }
+        if (user.sector_id &&  user.Roles?.length>0) {
+            user.sector_id=null;
+            await user.save()
+            await sector.removeUser(user);
+            await user.setRoles([]); 
+            return res.status(200).json({message:"removed"});
+        }else{
+            throw new CustomError(`User with Id: ${user_id} is not found under ${sector_id}`, 400);
+        }
+        
+        
+    } catch (error) {
+        next(error);
+    }
+}
