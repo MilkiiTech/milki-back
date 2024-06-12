@@ -7,11 +7,11 @@ const options = {
         description: 'Student Management System covered Create, Read, Update, and Delete operations using a Node.js API',
       },
       servers:[
-        {url:'http://:::8080/api'}, //you can change you server url
+        {url:'http://localhost:8080/api'}, //you can change you server url
       ],
     },
   
-    apis: ['./routes/*.js'], //you can change you swagger path
+    apis: ['./user/routes/*.js','./structure/routers/zone/*.js','./structure/routers/woreda/*.js', './structure/routers/sector/*.js','./structure/routers/group/*.js'], //you can change you swagger path
   };
 
   module.exports=options;
