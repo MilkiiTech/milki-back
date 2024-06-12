@@ -50,6 +50,10 @@ Group.belongsToMany(User, { through: 'GroupMembers', as: 'members' });
 Sector.hasMany(Group, {foreignKey:'sector_id', as:"groups"});
 Group.belongsTo(Sector, {foreignKey:'sector_id', as:"sector"});
 
+// Define Self Referencing Sector Association to achive sector Have SubSectors under it
+Sector.hasMany(Sector, {as:"SubSectors", foreignKey:"parent_sector_id"})
+Sector.belongsTo(Sector, {as:"ParentSector", foreignKey:"parent_sector_id"});
+
 module.exports = { User, Role, Permission, Zone, Woreda , Sector, Group};
 
 

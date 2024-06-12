@@ -165,10 +165,3 @@ exports.addMembers = async (req, res, next)=>{
         next(error);
     }
 }
-exports.getMembers = async (req, res, next)=>{
-    try {
-        
-    } catch (error) {
-        next(error);
-    }
-}

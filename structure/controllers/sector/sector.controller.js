@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const CustomError = require("../../../error/customError");
 const { v4: uuidv4 } = require('uuid');
 exports.create = async (req, res, next)=>{
-    const {sector_name, sector_type, zone_user_id, woreda_id}=req.body
+    const {sector_name, sector_type, zone_user_id, woreda_id,parent_sector_id}=req.body
     try {
         const user = await User.findByPk(req.user_id);
         let zone;
@@ -21,7 +21,8 @@ exports.create = async (req, res, next)=>{
                 sector_name:sector_name,
                 sector_type:sector_type,
                 zone_id:zone_user_id,
-                woreda_id:woreda_id
+                woreda_id:woreda_id,
+                parent_sector_id:parent_sector_id
             })
             await sector.setCreatedBy(user);
             await sector.setZone(zone);
@@ -72,6 +73,16 @@ exports.findAll = async (req, res, next)=>{
                         'password','createdAt','updatedAt'
                     ]
                 }
+            },
+            {
+                model:Sector,
+                as:"ParentSector",
+                
+            },
+            {
+                model:Sector,
+                as:"SubSectors",
+                
             }
         ]});
         return res.status(200).json(sector)
@@ -116,6 +127,16 @@ exports.findOne = async (req, res, next)=>{
                         'password','createdAt','updatedAt'
                     ]
                 }
+            },
+            {
+                model:Sector,
+                as:"ParentSector",
+                
+            },
+            {
+                model:Sector,
+                as:"SubSectors",
+                
             }
         ]});
         return res.status(200).json(sector)

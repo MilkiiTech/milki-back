@@ -16,7 +16,8 @@ const createSectorValidation = (req, res, next) => {
         is: 'Woreda',
         then: Joi.required(),
         otherwise: Joi.allow(null)
-      })
+      }),
+      parent_sector_id:Joi.string().guid({version:['uuidv4']})
       
     });
   

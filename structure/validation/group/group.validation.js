@@ -20,7 +20,7 @@ const createGroupValidation = (req, res, next) => {
   
     next();
   };
-  const addMembersToGroupValidation  = (req, res, next) => {
+const addMembersToGroupValidation  = (req, res, next) => {
     // Define Joi schema for the form data
     
     const schema = Joi.object({

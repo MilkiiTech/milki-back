@@ -15,7 +15,5 @@ router.post("/create",checkPermission('can_create_group'),createGroupValidation,
 router.get("/get",checkPermission('can_view_group'), findAll);
 router.get("/get/:group_id",checkPermission('can_view_group'), findOne);
 router.post("/:group_id/member", checkPermission("can_update_group"), addMembersToGroupValidation,addMembers)
-router.post("/:group_id/member", checkPermission("can_update_group"), addMembers)
 // router.delete("/delete/:woreda_id",checkPermission('can_delete_woreda_admin'), deleteOne);
-
 module.exports = router;

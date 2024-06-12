@@ -5,9 +5,12 @@ const bodyParser = require("body-parser");
 const helmet = require("helmet");
 const compression = require("compression");
 const cors = require("cors");
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 const debug = require("debug")("app:server");
 const config = require("./config/config");
 const db = require("./config/db");
+const options=require("./config/swagger.config")
 // const logger = require("./configs/logger");
 const fs = require("fs");
 const http = require("http");
@@ -26,11 +29,13 @@ app.use(
     secure: true,
   })
 );
+const specs = swaggerJsdoc(options);
+
 app.use(cors("*"));
 app.use("/image/uploads/", express.static("uploads"));
 app.use("/api/user", user);
 app.use("/api/structure", structure);
-
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use((req, res, next) => {
   res.status(404).send("Sorry can't find that Api!");
 });
