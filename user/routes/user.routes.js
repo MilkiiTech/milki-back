@@ -166,6 +166,8 @@ router.get("/group",checkPermission('can_create_user'), findAll);
  *   get:
  *     summary: Query All Roles 
  *     tags: [Role]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Successful response
@@ -174,6 +176,7 @@ router.get("/group",checkPermission('can_create_user'), findAll);
  *             example:
  *               role: {}
  */
+
 router.get("/role", checkPermission('can_view_role'),findAllRole);
 /**
  * @swagger
@@ -199,9 +202,10 @@ router.get("/role", checkPermission('can_view_role'),findAllRole);
  *             type: object
  *             properties:
  *               user_id:
- *                 type: uuid
+ *                 type: string
+ *                 format: uuid
  *             example:
- *                user_id: "aa985301-a6ff-49cf-9d86-f433b1766a83"
+ *               user_id: "aa985301-a6ff-49cf-9d86-f433b1766a83"
  *     responses:
  *       200:
  *         description: Successful response
@@ -209,7 +213,10 @@ router.get("/role", checkPermission('can_view_role'),findAllRole);
  *           application/json:
  *             example:
  *               role: {}
+ *     security:
+ *       - bearerAuth: []
  */
+
 router.put("/role/:role_id/assignUser",checkPermission('can_update_user'),assignRoleToUserValidation, assignRoleToUser)
 /**
  * @swagger
@@ -217,6 +224,8 @@ router.put("/role/:role_id/assignUser",checkPermission('can_update_user'),assign
  *   get:
  *     summary: Query All Permissions 
  *     tags: [Permission]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Successful response
@@ -225,6 +234,7 @@ router.put("/role/:role_id/assignUser",checkPermission('can_update_user'),assign
  *             example:
  *               role: {}
  */
+
 router.get("/permission", checkPermission('can_view_permission'),findAllPermission);
 /**
  * @swagger
