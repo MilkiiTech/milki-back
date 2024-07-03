@@ -31,10 +31,10 @@ router.post("/signup",checkPermission('can_create_user'),registrationValidation,
  * @swagger
  * /user/create:
  *   post:
- *     summary: Create new  User 
+ *     summary: Create new User
  *     tags: [User]
  *     requestBody:
- *       description: Request body for SignIn
+ *       description: Request body for creating a new user
  *       required: true
  *       content:
  *         application/json:
@@ -43,11 +43,20 @@ router.post("/signup",checkPermission('can_create_user'),registrationValidation,
  *             properties:
  *               username:
  *                 type: string
- *               password:
+ *               email:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               role_id:
+ *                 type: integer
+ *               sector_id:
  *                 type: string
  *             example:
- *                username: "John Doe"
- *                password: "Colombo - Srilanka "
+ *               username: "zone_hr"
+ *               email: "amaedris1@gmail.com"
+ *               phone_number: "+251987654321"
+ *               role_id: 48
+ *               sector_id: "3208d77c-b033-4890-8150-c1270084cff4"
  *     responses:
  *       200:
  *         description: Successful response
@@ -63,10 +72,10 @@ router.post("/create", checkPermission('can_create_user'), creteUserValidation,c
  * @swagger
  * /user/assignUserToSector:
  *   post:
- *     summary: Create new  User 
+ *     summary: Assign User to Sector
  *     tags: [User]
  *     requestBody:
- *       description: Request body for Assigning User to Sector
+ *       description: Request body for assigning a user to a sector
  *       required: true
  *       content:
  *         application/json:
@@ -78,29 +87,31 @@ router.post("/create", checkPermission('can_create_user'), creteUserValidation,c
  *               sector_id:
  *                 type: string
  *               role_id:
- *                 type: string
+ *                 type: integer
  *             example:
- *                sector_id: "e373f145-647a-4ece-9cac-bc6e824f8266"
- *                password: "e373f145-647a-4ece-9cac-bc6e824f8266"
+ *               user_id: "aa985301-a6ff-49cf-9d86-f433b1766a83"
+ *               sector_id: "3208d77c-b033-4890-8150-c1270084cff4"
+ *               role_id: 3
  *     responses:
  *       200:
  *         description: Successful response
  *         content:
  *           application/json:
  *             example:
- *               token: {}
+ *               message: "User assigned to sector successfully"
  *       400:
  *         description: Invalid request
  */
+
 router.post("/assignUserToSector", checkPermission('can_update_users'),assignUserToSectorValidation, assignUserToSector);
 /**
  * @swagger
  * /user/removeUserFromSector:
  *   post:
- *     summary: Create new  User 
+ *     summary: Remove User from Sector
  *     tags: [User]
  *     requestBody:
- *       description: Request body for Assigning User to Sector
+ *       description: Request body for removing a user from a sector
  *       required: true
  *       content:
  *         application/json:
@@ -112,18 +123,19 @@ router.post("/assignUserToSector", checkPermission('can_update_users'),assignUse
  *               sector_id:
  *                 type: string
  *             example:
- *                user_id: "e373f145-647a-4ece-9cac-bc6e824f8266"
- *                sector_id: "e373f145-647a-4ece-9cac-bc6e824f8266"
+ *               user_id: "e373f145-647a-4ece-9cac-bc6e824f8266"
+ *               sector_id: "3208d77c-b033-4890-8150-c1270084cff4"
  *     responses:
  *       200:
  *         description: Successful response
  *         content:
  *           application/json:
  *             example:
- *               token: {}
+ *               message: "User removed from sector successfully"
  *       400:
  *         description: Invalid request
  */
+
 router.post("/removeUserFromSector", checkPermission('can_update_users'),removeUserFromSectorValidation, removeUserFromSector);
 /**
  * @swagger

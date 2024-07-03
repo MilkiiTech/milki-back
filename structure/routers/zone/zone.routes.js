@@ -13,39 +13,66 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  * @swagger
  * /structure/zone/create:
  *   post:
- *     summary: Create new  User 
+ *     summary: Create new Zone
  *     tags: [Zone]
  *     requestBody:
- *       description: Request body for SignIn
+ *       description: Request body for creating a new zone
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
+ *               userDetail:
+ *                 type: object
+ *                 properties:
+ *                   username:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   phone_number:
+ *                     type: string
+ *               zoneDetail:
+ *                 type: object
+ *                 properties:
+ *                   zone_name:
+ *                     type: string
+ *                   city_name:
+ *                     type: string
+ *                   email_address:
+ *                     type: string
+ *                   contact_phone_number:
+ *                     type: string
+ *               role_id:
+ *                 type: integer
  *             example:
- *                username: "John Doe"
- *                password: "Colombo - Srilanka "
+ *               userDetail: 
+ *                 username: "amhir"
+ *                 email: "amaedris1@gmail.com"
+ *                 phone_number: "+251987654321"
+ *               zoneDetail:
+ *                 zone_name: "Jimma"
+ *                 city_name: "Jimma"
+ *                 email_address: "amaedris1@gmail.com"
+ *                 contact_phone_number: "+251987654321"
+ *               role_id: 6
  *     responses:
  *       200:
  *         description: Successful response
  *         content:
  *           application/json:
  *             example:
- *               token: {}
+ *               message: "Zone created successfully"
  *       400:
  *         description: Invalid request
  */
+
 router.post("/create",checkPermission('can_create_zone_admin'),createZoneAdminValidation, create);
 /**
  * @swagger
  * /structure/zone/get:
  *   get:
- *     summary: Query All Permissions 
+ *     summary: Query All Zone 
  *     tags: [Zone]
  *     responses:
  *       200:
@@ -55,11 +82,11 @@ router.post("/create",checkPermission('can_create_zone_admin'),createZoneAdminVa
  *             example:
  *               role: {}
  */
-router.get("/get", checkPermission('can_create_zone_admin'), findAll);
+router.get("/get", checkPermission('can_view_zone_admin'), findAll);
 /**
  * @swagger
  * /structure/zone/get/{zone_user_id}:
- *   post:
+ *   get:
  *     summary: Assign Role to User
  *     tags: [Zone]
  *     parameters:
@@ -79,7 +106,7 @@ router.get("/get", checkPermission('can_create_zone_admin'), findAll);
  *             example:
  *               role: {}
  */
-router.get("/get/:zone_user_id", checkPermission('can_create_zone_admin'), findOne);
+router.get("/get/:zone_user_id", checkPermission('can_view_zone_admin'), findOne);
 
 
 module.exports = router;

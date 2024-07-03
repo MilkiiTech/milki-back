@@ -14,33 +14,63 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  * @swagger
  * /structure/woreda/create:
  *   post:
- *     summary: Create new  User 
+ *     summary: Create new Woreda
  *     tags: [Woreda]
  *     requestBody:
- *       description: Request body for SignIn
+ *       description: Request body for creating a new woreda
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               username:
- *                 type: string
- *               password:
+ *               userDetail:
+ *                 type: object
+ *                 properties:
+ *                   username:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   phone_number:
+ *                     type: string
+ *               woredaDetail:
+ *                 type: object
+ *                 properties:
+ *                   woreda_name:
+ *                     type: string
+ *                   city_name:
+ *                     type: string
+ *                   email_address:
+ *                     type: string
+ *                   contact_phone_number:
+ *                     type: string
+ *               role_id:
+ *                 type: integer
+ *               zone_id:
  *                 type: string
  *             example:
- *                username: "John Doe"
- *                password: "Colombo - Srilanka "
+ *               userDetail: 
+ *                 username: "dides_admin"
+ *                 email: "amaedris1@gmail.com"
+ *                 phone_number: "+251987654321"
+ *               woredaDetail:
+ *                 woreda_name: "Didesa"
+ *                 city_name: "Dembi"
+ *                 email_address: "amaedris1@gmail.com"
+ *                 contact_phone_number: "+251987654321"
+ *               role_id: 7
+ *               zone_id: "039e77e3-2134-4d89-bd92-68ded5b6197d"
  *     responses:
  *       200:
  *         description: Successful response
  *         content:
  *           application/json:
  *             example:
- *               token: {}
+ *               message: "Woreda created successfully"
  *       400:
  *         description: Invalid request
  */
+
 router.post("/create",checkPermission('can_create_woreda_admin'),createWoredaValidation, create);
 /**
  * @swagger
