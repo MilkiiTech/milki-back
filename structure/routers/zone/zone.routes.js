@@ -32,6 +32,11 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *                     type: string
  *                   phone_number:
  *                     type: string
+ *               sectorDetail:
+ *                 type: object
+ *                 properties:
+ *                   sector_name:
+ *                     type: string
  *               zoneDetail:
  *                 type: object
  *                 properties:
@@ -47,9 +52,11 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *                 type: integer
  *             example:
  *               userDetail: 
- *                 username: "amhir"
- *                 email: "amaedris1@gmail.com"
- *                 phone_number: "+251987654321"
+ *                 username: "muhidin"
+ *                 email: "muhidin@gmail.com"
+ *                 phone_number: "+251987654322"
+ *               sectorDetail:
+ *                 sector_name: "Hr"
  *               zoneDetail:
  *                 zone_name: "Jimma"
  *                 city_name: "Jimma"

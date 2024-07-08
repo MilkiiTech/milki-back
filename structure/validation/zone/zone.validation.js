@@ -10,6 +10,9 @@ const createZoneAdminValidation = (req, res, next) => {
         .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
         phone_number: Joi.string().pattern(phonePattern),
     }),
+    sectorDetail: Joi.object({
+        sector_name:Joi.string().required(),
+    }),
     zoneDetail: Joi.object({
         zone_name:Joi.string().required(),
         email_address: Joi.string()

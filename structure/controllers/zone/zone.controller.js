@@ -1,20 +1,21 @@
 const sequelize = require("../../../config/db");
 const {generatePassword}=require("../../../utils/utils")
-const {User, Role, Zone}= require("../../../user/models/association")
+const {User, Role, Zone,Sector}= require("../../../user/models/association")
 const bcrypt = require('bcrypt');
 const CustomError = require("../../../error/customError");
 const { v4: uuidv4 } = require('uuid');
 exports.create = async (req, res, next)=>{
     // const {username, email, phone_number, password}=req.body;
-    const {userDetail, zoneDetail, role_id}=req.body;
+    const {userDetail, zoneDetail, role_id, sectorDetail}=req.body;
     const {username, email, phone_number}=userDetail;
     const {zone_name, city_name, contact_phone_number,email_address}=zoneDetail;
-    let transaction;
+    const {sector_name}=sectorDetail;
     try {
         let password = generatePassword();
         console.log(password, "password");
         const hashed_password=await bcrypt.hash(password.toString(), 10);
         const result = await sequelize.transaction(async(t)=>{
+            const currentUser = await User.findByPk(req.user_id);
             const user = await User.create({
                 username,
                 email,
@@ -23,14 +24,20 @@ exports.create = async (req, res, next)=>{
                 createdBy:req.user_id
             }, {transaction:t})
             const zone = await Zone.create({
-            
                 zone_name,
                 city_name,
                 phone_number:contact_phone_number,
                 email_address,
                 createdBy:req.user_id
             },{transaction:t})
-            // await user.addZone(zone);
+            const sector = await Sector.create({
+                sector_name:sector_name,
+                sector_type:"Zone",
+                zone_id:zone.zone_user_id,
+                
+            },{transaction:t})
+            await sector.setCreatedBy(currentUser, {transaction:t});
+            await sector.setZone(zone, {transaction:t});
             await zone.setUser(user,{ transaction: t });
             if (role_id) {
                 const role = await Role.findByPk(role_id,{transaction:t});
@@ -41,15 +48,12 @@ exports.create = async (req, res, next)=>{
                 await user.addRole(role, {transaction:t});
                 
             }
-        return res.status(201).json(user);
-
-
+        return res.status(201).json(zone);
         })
     } catch (error) {
+        console.log(error)
         next(error)
     }
-    
-
 }
 // Find All Zones 
 exports.findAll = async (req, res, next)=>{
