@@ -3,12 +3,14 @@ const router = express.Router();
 const {
   create,
   findAll,
-  findOne
+  findOne,
+  deleteOne
 } = require("../../controllers/zone/zone.controller");
 const {
 createZoneAdminValidation
 } = require("../../validation/zone/zone.validation");
 const { checkPermission } = require("../../../middlewares/accessControl");
+
 /**
  * @swagger
  * /structure/zone/create:
@@ -94,7 +96,7 @@ router.get("/get", checkPermission('can_view_zone_admin'), findAll);
  * @swagger
  * /structure/zone/get/{zone_user_id}:
  *   get:
- *     summary: Assign Role to User
+ *     summary: Fetch Zone by zone_user_id
  *     tags: [Zone]
  *     parameters:
  *       - name: zone_user_id
@@ -114,6 +116,29 @@ router.get("/get", checkPermission('can_view_zone_admin'), findAll);
  *               role: {}
  */
 router.get("/get/:zone_user_id", checkPermission('can_view_zone_admin'), findOne);
-
+/**
+ * @swagger
+ * /structure/zone/{zone_user_id}:
+ *   delete:
+ *     summary: Delete Zone by zone_user_id
+ *     tags: [Zone]
+ *     parameters:
+ *       - name: zone_user_id
+ *         in: path
+ *         required: true
+ *         description: The ID of the role
+ *         schema:
+ *           type: string
+ *         example:
+ *             3
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             example:
+ *               role: {}
+ */
+router.delete("/:zone_user_id", checkPermission('can_delete_zone_admin'), deleteOne);
 
 module.exports = router;

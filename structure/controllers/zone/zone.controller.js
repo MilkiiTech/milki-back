@@ -109,7 +109,7 @@ exports.update = async (req, res,next)=>{
     }
 }
 // delete zone
-exports.delete = async (req, res,next)=>{
+exports.deleteOne = async (req, res,next)=>{
     const {zone_user_id}=req.params;
     try {
         const zoneUser = await Zone.findByPk(zone_user_id);
