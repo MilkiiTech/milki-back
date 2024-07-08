@@ -252,7 +252,7 @@ router.get("/permission", checkPermission('can_view_permission'),findAllPermissi
  * @swagger
  * /user/assignRolePermission:
  *   post:
- *     summary: Assign Role to User
+ *     summary: Assign Role to Permissions
  *     tags: [Permission]
  *     requestBody:
  *       description: Request body for Assigning Role to Permissions
@@ -262,10 +262,15 @@ router.get("/permission", checkPermission('can_view_permission'),findAllPermissi
  *           schema:
  *             type: object
  *             properties:
- *               user_id:
- *                 type: uuid
+ *               role_id:
+ *                 type: integer
+ *               permission_ids:
+ *                 type: array
+ *                 items:
+ *                   type: integer
  *             example:
- *                user_id: "aa985301-a6ff-49cf-9d86-f433b1766a83"
+ *               role_id: 7
+ *               permission_ids: [58, 51]
  *     responses:
  *       200:
  *         description: Successful response
@@ -274,5 +279,6 @@ router.get("/permission", checkPermission('can_view_permission'),findAllPermissi
  *             example:
  *               role: {}
  */
+
 router.post("/assignRolePermission",checkPermission('can_view_permission'), assignRolePermission)
 module.exports = router;
