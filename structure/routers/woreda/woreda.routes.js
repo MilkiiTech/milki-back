@@ -76,7 +76,7 @@ router.post("/create",checkPermission('can_create_woreda_admin'),createWoredaVal
  * @swagger
  * /structure/woreda/get:
  *   get:
- *     summary: Query All Permissions 
+ *     summary: Query All Woreda 
  *     tags: [Woreda]
  *     responses:
  *       200:
@@ -91,7 +91,7 @@ router.get("/get",checkPermission('can_view_woreda_admin'), findAll);
  * @swagger
  * /structure/woreda/get/{woreda_id}:
  *   post:
- *     summary: Assign Role to User
+ *     summary: Get Woreda by woreda Id
  *     tags: [Woreda]
  *     parameters:
  *       - name: woreda_id

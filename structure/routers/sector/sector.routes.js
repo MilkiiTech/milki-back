@@ -15,7 +15,7 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  * @swagger
  * /structure/sector/create:
  *   post:
- *     summary: Create new  User 
+ *     summary: Create new Sector
  *     tags: [Sector]
  *     requestBody:
  *       description: Request body for creating Sector
@@ -25,13 +25,19 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               sector_name:
  *                 type: string
- *               password:
+ *               sector_type:
+ *                 type: string
+ *               woreda_id:
+ *                 type: string
+ *               parent_sector_id:
  *                 type: string
  *             example:
- *                username: "John Doe"
- *                password: "Colombo - Srilanka "
+ *                sector_name: "Communication Dides"
+ *                sector_type: "Woreda"
+ *                woreda_id: "ff3445f7-61f6-4c1c-aa46-c98d882c85b8"
+ *                parent_sector_id: "68e5796e-d160-4f4f-b799-1bdb1c2d7348"
  *     responses:
  *       200:
  *         description: Successful response
@@ -42,6 +48,7 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *       400:
  *         description: Invalid request
  */
+
 router.post("/create",checkPermission('can_create_sector'),createSectorValidation, create);
 /**
  * @swagger
@@ -61,14 +68,14 @@ router.get("/get",checkPermission('can_view_sector'), findAll);
 /**
  * @swagger
  * /structure/sector/get/{sector_id}:
- *   post:
- *     summary: Assign Role to User
+ *   get:
+ *     summary: Query Sector by Sector Id
  *     tags: [Sector]
  *     parameters:
  *       - name: sector_id
  *         in: path
  *         required: true
- *         description: The ID of the woreda
+ *         description: The ID of the sector
  *         schema:
  *           type: string
  *         example:
@@ -86,13 +93,13 @@ router.get("/get/:sector_id",checkPermission('can_view_sector'), findOne);
  * @swagger
  * /structure/sector/delete/{sector_id}:
  *   delete:
- *     summary: Delete Woreda by Id
+ *     summary: Delete Sector by Id
  *     tags: [Sector]
  *     parameters:
  *       - name: sector_id
  *         in: path
  *         required: true
- *         description: The ID of the woreda
+ *         description: The ID of the Sector
  *         schema:
  *           type: string
  *         example:

@@ -15,7 +15,7 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  * @swagger
  * /structure/group/create:
  *   post:
- *     summary: Create new  Group 
+ *     summary: Create new Group
  *     tags: [Group]
  *     requestBody:
  *       description: Request body for creating Group
@@ -25,13 +25,21 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               group_name:
  *                 type: string
- *               password:
+ *               leader_id:
+ *                 type: string
+ *               members_id:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               sector_id:
  *                 type: string
  *             example:
- *                username: "John Doe"
- *                password: "Colombo - Srilanka "
+ *               group_name: "GroupC"
+ *               leader_id: "aa985301-a6ff-49cf-9d86-f433b1766a83"
+ *               members_id: []
+ *               sector_id: "3208d77c-b033-4890-8150-c1270084cff4"
  *     responses:
  *       200:
  *         description: Successful response
@@ -42,6 +50,7 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *       400:
  *         description: Invalid request
  */
+
 router.post("/create",checkPermission('can_create_group'),createGroupValidation, create);
 /**
  * @swagger
