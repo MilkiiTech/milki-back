@@ -6,23 +6,25 @@ const CustomError = require("../../../error/customError");
 const { v4: uuidv4 } = require('uuid');
 exports.create = async (req, res, next)=>{
     // const {username, email, phone_number, password}=req.body;
-    const {userDetail, zoneDetail, role_id, sectorDetail}=req.body;
-    const {username, email, phone_number}=userDetail;
+    const {users, zoneDetail}=req.body;
     const {zone_name, city_name, contact_phone_number,email_address}=zoneDetail;
-    const {sector_name}=sectorDetail;
     try {
         let password = generatePassword();
-        console.log(password, "password");
+       
+        
         const hashed_password=await bcrypt.hash(password.toString(), 10);
+        const refinedUsers = users.map(user => {
+            const { username, email, phone_number } = user;
+            return { username, email, phone_number, password:hashed_password };
+        });
+        
         const result = await sequelize.transaction(async(t)=>{
             const currentUser = await User.findByPk(req.user_id);
-            const user = await User.create({
-                username,
-                email,
-                password:hashed_password,
-                phone_number,
-                createdBy:req.user_id
-            }, {transaction:t})
+            const user = await User.bulkCreate(refinedUsers, {transaction:t});
+            const role1 = await Role.findByPk(users[0].role_id,{transaction:t});
+            const role2 = await Role.findByPk(users[1].role_id,{transaction:t});
+            await user[0].addRole(role1, {transaction:t});
+            await user[1].addRole(role2, {transaction:t});
             const zone = await Zone.create({
                 zone_name,
                 city_name,
@@ -30,24 +32,19 @@ exports.create = async (req, res, next)=>{
                 email_address,
                 createdBy:req.user_id
             },{transaction:t})
-            const sector = await Sector.create({
-                sector_name:sector_name,
-                sector_type:"Zone",
-                zone_id:zone.zone_user_id,
-                
-            },{transaction:t})
-            await sector.setCreatedBy(currentUser, {transaction:t});
-            await sector.setZone(zone, {transaction:t});
-            await zone.setUser(user,{ transaction: t });
-            if (role_id) {
-                const role = await Role.findByPk(role_id,{transaction:t});
-                if(role == null){
-                    t.rollback();
-                    throw new CustomError("Bad Request Role is Mandatory", 400);
-                }
-                await user.addRole(role, {transaction:t});
-                
-            }
+            const new_sectors=users.map(sector => {
+                const { sector_name} = sector;
+                const { zone_user_id} = zone;
+                return { sector_name, sector_type:"Zone",zone_id:zone_user_id };
+            });
+            const sector = await Sector.bulkCreate(new_sectors,{transaction:t})
+            await sector[0].setCreatedBy(currentUser, {transaction:t});
+            await sector[1].setCreatedBy(currentUser, {transaction:t});
+            await sector[0].setZone(zone, {transaction:t});
+            await sector[1].setZone(zone, {transaction:t});
+            await zone.setUser(user[0],{ transaction: t });
+            await zone.setUser(user[1],{ transaction: t });
+           
         return res.status(201).json(zone);
         })
     } catch (error) {

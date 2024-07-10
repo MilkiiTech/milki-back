@@ -4,6 +4,7 @@ const {User, Role, Zone, Sector, Woreda}= require("../../../user/models/associat
 const bcrypt = require('bcrypt');
 const CustomError = require("../../../error/customError");
 const { v4: uuidv4 } = require('uuid');
+const {PREDEFINED_SECTORS}=require("../../../config/constant");
 exports.create = async (req, res, next)=>{
     const {sector_name, sector_type, zone_user_id, woreda_id,parent_sector_id}=req.body
     try {
@@ -169,4 +170,8 @@ exports.deleteOne = async (req, res,next)=>{
     } catch (error) {
         next(error)
     }
+}
+// get sector name
+exports.getSectorName= async (req, res, next)=>{
+    return res.status(200).json(PREDEFINED_SECTORS);
 }

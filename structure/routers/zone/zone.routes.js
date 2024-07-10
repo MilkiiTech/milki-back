@@ -10,7 +10,6 @@ const {
 createZoneAdminValidation
 } = require("../../validation/zone/zone.validation");
 const { checkPermission } = require("../../../middlewares/accessControl");
-
 /**
  * @swagger
  * /structure/zone/create:
@@ -25,20 +24,21 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *           schema:
  *             type: object
  *             properties:
- *               userDetail:
- *                 type: object
- *                 properties:
- *                   username:
- *                     type: string
- *                   email:
- *                     type: string
- *                   phone_number:
- *                     type: string
- *               sectorDetail:
- *                 type: object
- *                 properties:
- *                   sector_name:
- *                     type: string
+ *               users:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     username:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     phone_number:
+ *                       type: string
+ *                     sector_name:
+ *                       type: string
+ *                     role_id:
+ *                       type: integer
  *               zoneDetail:
  *                 type: object
  *                 properties:
@@ -50,21 +50,25 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *                     type: string
  *                   contact_phone_number:
  *                     type: string
- *               role_id:
- *                 type: integer
+ *                   role_id:
+ *                     type: integer
  *             example:
- *               userDetail: 
- *                 username: "muhidin"
- *                 email: "muhidin@gmail.com"
- *                 phone_number: "+251987654322"
- *               sectorDetail:
- *                 sector_name: "Hr"
+ *               users:
+ *                 - username: "moti"
+ *                   email: "moti@gmail.com"
+ *                   phone_number: "+251985654322"
+ *                   sector_name: "HR"
+ *                   role_id: 6
+ *                 - username: "etana"
+ *                   email: "etana@gmail.com"
+ *                   phone_number: "+251987667322"
+ *                   sector_name: "BULCHA"
+ *                   role_id: 6
  *               zoneDetail:
- *                 zone_name: "Jimma"
- *                 city_name: "Jimma"
+ *                 zone_name: "Ilu A/BORA"
+ *                 city_name: "Metu"
  *                 email_address: "amaedris1@gmail.com"
  *                 contact_phone_number: "+251987654321"
- *               role_id: 6
  *     responses:
  *       200:
  *         description: Successful response
@@ -75,6 +79,7 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *       400:
  *         description: Invalid request
  */
+
 
 router.post("/create",checkPermission('can_create_zone_admin'),createZoneAdminValidation, create);
 /**
