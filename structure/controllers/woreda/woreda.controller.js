@@ -3,16 +3,16 @@ const {generatePassword}=require("../../../utils/utils")
 const {User, Role, Zone,Woreda}= require("../../../user/models/association")
 const bcrypt = require('bcrypt');
 const CustomError = require("../../../error/customError");
-exports.create = async (req, res, next)=>{
-    // const {username, email, phone_number, password}=req.body;
-    const {userDetail, woredaDetail, role_id, zone_id}=req.body;
-    const {username, email, phone_number}=userDetail;
+exports.create = async (req, res, next)=>{ 
+    const {users, woredaDetail, zone_id}=req.body; 
     const {woreda_name, city_name, contact_phone_number,email_address}=woredaDetail;
     try {
         let password = generatePassword();
-        console.log(password, "password");
-        console.log(zone_id, "zone_id");
         const hashed_password=await bcrypt.hash(password.toString(), 10);
+        const refinedUsers = users.map(user => {
+            const { username, email, phone_number } = user;
+            return { username, email, phone_number, password:hashed_password };
+        }); 
         const result = await sequelize.transaction(async(t)=>{
             const zone = await Zone.findByPk(zone_id);
             const currentUser = await User.findByPk(req.user_id)
@@ -20,12 +20,11 @@ exports.create = async (req, res, next)=>{
                 t.rollback();
                 throw new CustomError(`Bad Request Zone is Not Found With Id: ${zone_id}`, 400);
             }
-            const user = await User.create({
-                username,
-                email,
-                password:hashed_password,
-                phone_number,
-            }, {transaction:t})
+            const role1 = await Role.findByPk(users[0].role_id,{transaction:t});
+            const role2 = await Role.findByPk(users[1].role_id,{transaction:t});
+            const user = await User.bulkCreate(refinedUsers, {transaction:t});
+            await user[0].addRole(role1, {transaction:t});
+            await user[1].addRole(role2, {transaction:t});
             const woreda = await Woreda.create({
                 woreda_name,
                 city_name,
@@ -34,18 +33,11 @@ exports.create = async (req, res, next)=>{
                 
             },{transaction:t})
             // await user.addZone(zone);
-            await woreda.setUser(user,{ transaction: t });
+            await woreda.setUser(user[0],{ transaction: t });
+            await woreda.setUser(user[1],{ transaction: t });
             await woreda.setZone(zone, {transaction:t});
             await woreda.setCreatedBy(currentUser, {transaction:t});
-            if (role_id) {
-                const role = await Role.findByPk(role_id,{transaction:t});
-                if(role == null){
-                    t.rollback();
-                    throw new CustomError("Bad Request Role is Mandatory", 400);
-                }
-                await user.addRole(role, {transaction:t});
-                
-            }
+            
         return res.status(201).json(user);
         })
     } catch (error) {

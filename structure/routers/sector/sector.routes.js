@@ -128,6 +128,6 @@ router.delete("/delete/:sector_id",checkPermission('can_delete_woreda_admin'), d
  *             example:
  *               role: {}
  */
-router.get("/sectorname", getSectorName)
+router.get("/sectorname",checkPermission('can_view_sector'), getSectorName)
 
 module.exports = router;
