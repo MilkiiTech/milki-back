@@ -6,7 +6,8 @@ const {
   findOne,
   update,
   deleteOne,
-  getSectorName
+  getSectorName,
+  findAllOwnSector
 } = require("../../controllers/sector/sector.controller");
 const {
 createSectorValidation
@@ -129,5 +130,20 @@ router.delete("/delete/:sector_id",checkPermission('can_delete_woreda_admin'), d
  *               role: {}
  */
 router.get("/sectorname",checkPermission('can_view_sector'), getSectorName)
+/**
+ * @swagger
+ * /structure/sector/ownSector:
+ *   get:
+ *     summary: Query All Sectors 
+ *     tags: [Sector]
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             example:
+ *               role: {}
+ */
+router.get("/ownSector",checkPermission('can_view_sector'), findAllOwnSector);
 
 module.exports = router;

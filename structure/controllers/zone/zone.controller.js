@@ -4,6 +4,7 @@ const {User, Role, Zone,Sector}= require("../../../user/models/association")
 const bcrypt = require('bcrypt');
 const CustomError = require("../../../error/customError");
 const { v4: uuidv4 } = require('uuid');
+
 exports.create = async (req, res, next)=>{
     // const {username, email, phone_number, password}=req.body;
     const {users, zoneDetail}=req.body;

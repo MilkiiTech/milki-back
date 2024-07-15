@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const CustomError = require("../../../error/customError");
 const { v4: uuidv4 } = require('uuid');
 const {PREDEFINED_SECTORS}=require("../../../config/constant");
+const {Sequelize, Op}=require("sequelize");
 exports.create = async (req, res, next)=>{
     const {sector_name, sector_type, zone_user_id, woreda_id,parent_sector_id}=req.body
     try {
@@ -88,6 +89,68 @@ exports.findAll = async (req, res, next)=>{
         ]});
         return res.status(200).json(sector)
     } catch (error) {
+        next(error);
+    }
+}
+
+exports.findAllOwnSector = async (req, res, next)=>{
+    try {
+        const sector = await Sector.findAll({
+            include: [
+              {
+                model: Zone,
+                required: false,
+                where: {
+                  userUserId: req.user_id
+                }
+              },
+              {
+                model: Woreda,
+                required: false,
+                where: {
+                  userUserId: req.user_id
+                }
+              },
+              {
+                model: User,
+                as: "createdBy",
+                attributes: {
+                  exclude: ['password', 'createdAt', 'updatedAt']
+                }
+              },
+              {
+                model: User,
+                as: "updatedBy",
+                attributes: {
+                  exclude: ['password', 'createdAt', 'updatedAt']
+                }
+              },
+              {
+                model: User,
+                as: "users",
+                attributes: {
+                  exclude: ['password', 'createdAt', 'updatedAt']
+                }
+              },
+              {
+                model: Sector,
+                as: "ParentSector",
+              },
+              {
+                model: Sector,
+                as: "SubSectors",
+              }
+            ],
+            where: {
+              [Sequelize.Op.or]: [
+                { '$Zone.userUserId$': req.user_id },
+                { '$Woreda.userUserId$': req.user_id }
+              ]
+            }
+          });
+        return res.status(200).json(sector)
+    } catch (error) {
+        console.log(error, "Error")
         next(error);
     }
 }
