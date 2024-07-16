@@ -56,7 +56,9 @@ exports.create = async (req, res, next)=>{
 // Find All Zones 
 exports.findAll = async (req, res, next)=>{
     try {
-        const zone = await Zone.findAll({include:{
+        const zone = await Zone.findAll({where:{
+            userUserId:req.user_id
+        }},{include:{
             model:User,
             as:"user",
             

@@ -158,51 +158,59 @@ exports.findAllOwnSector = async (req, res, next)=>{
 exports.findOne = async (req, res, next)=>{
     try {
         const {sector_id}=req.params
-        const sector = await Sector.findByPk(sector_id,{include:[
-            {
-                model:Zone
-            },
-            {
-                model:Woreda
-            },
-            {
-                model:User,
-                as:"createdBy",
-                attributes:{
-                    exclude:[
-                        'password','createdAt','updatedAt'
-                    ]
+        const sector = await Sector.findAll(sector_id,{
+            include: [
+              {
+                model: Zone,
+                required: false,
+                where: {
+                  userUserId: req.user_id
                 }
-            },
-            {
-                model:User,
-                as:"updatedBy",
-                attributes:{
-                    exclude:[
-                        'password','createdAt','updatedAt'
-                    ]
+              },
+              {
+                model: Woreda,
+                required: false,
+                where: {
+                  userUserId: req.user_id
                 }
-            },
-            {
-                model:User,
-                as:"users",
-                attributes:{
-                    exclude:[
-                        'password','createdAt','updatedAt'
-                    ]
+              },
+              {
+                model: User,
+                as: "createdBy",
+                attributes: {
+                  exclude: ['password', 'createdAt', 'updatedAt']
                 }
-            },
-            {
-                model:Sector,
-                as:"ParentSector",
-                
-            },
-            {
-                model:Sector,
-                as:"SubSectors",
-                
+              },
+              {
+                model: User,
+                as: "updatedBy",
+                attributes: {
+                  exclude: ['password', 'createdAt', 'updatedAt']
+                }
+              },
+              {
+                model: User,
+                as: "users",
+                attributes: {
+                  exclude: ['password', 'createdAt', 'updatedAt']
+                }
+              },
+              {
+                model: Sector,
+                as: "ParentSector",
+              },
+              {
+                model: Sector,
+                as: "SubSectors",
+              }
+            ],
+            where: {
+              [Sequelize.Op.or]: [
+                { '$Zone.userUserId$': req.user_id },
+                { '$Woreda.userUserId$': req.user_id }
+              ]
             }
-        ]});
+          });
         return res.status(200).json(sector)
     } catch (error) {
         next(error);
