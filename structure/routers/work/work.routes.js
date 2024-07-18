@@ -120,7 +120,7 @@ router.get("/get", checkPermission('can_view_zone_admin'), findAll);
  *             example:
  *               role: {}
  */
-router.get("/get/:zone_user_id", checkPermission('can_view_zone_admin'), findOne);
+router.get("/get/:workId", checkPermission('can_view_work'), findOne);
 /**
  * @swagger
  * /structure/zone/{zone_user_id}:

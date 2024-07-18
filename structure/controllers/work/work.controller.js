@@ -10,7 +10,9 @@ exports.create = async (req, res, next)=>{
     const {description, plannedStartDate,plannedEndDate,quality,quantity,timeRequired,cost}=req.body;
     try { 
         const result = await sequelize.transaction(async(t)=>{
-            const currentUser = await User.findByPk(req.user_id,{transaction:t});
+            console.log(req.user_id);
+            const currentUser = await User.findByPk(req.user_id);
+            console.log(currentUser, "Fetched User");
             const work = await Work.create({
                 description,
                 plannedStartDate,
@@ -48,13 +50,9 @@ exports.findAll = async (req, res, next)=>{
 // Find One
 exports.findOne = async (req, res, next)=>{
     try {
-        const {zone_user_id}=req.params
-        const zone = await Zone.findByPk(zone_user_id,{include:[
-            {
-                model:User,
-                as:"user",
-                
-            },
+        const {workId}=req.params
+        const work = await Work.findByPk(workId,{include:[
+            
             {
                 model:User,
                 as:"createdBy"
@@ -66,7 +64,7 @@ exports.findOne = async (req, res, next)=>{
         ], attributes:{
             exclude:['updatedByUserId', 'createdByUserId']
         }});
-        return res.status(200).json(zone)
+        return res.status(200).json(work)
     } catch (error) {
         next(error);
     }

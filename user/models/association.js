@@ -7,6 +7,7 @@ const Sector = require("../../structure/models/sector");
 const Group = require("../../structure/models/group")
 const Work=require("../../structure/models/work")
 const WeeklyTask = require("../../structure/models/weeklyTask");
+const SectorWork=require("../../structure/models/sectorWork");
 // Define the association of Users to Roles
 Role.belongsToMany(User, { through: 'UsersRoles' });
 User.belongsToMany(Role, { through: 'UsersRoles' });
@@ -58,12 +59,14 @@ Sector.belongsTo(Sector, {as:"ParentSector", foreignKey:"parent_sector_id"});
 
 
 // // Work, Sector and User Association
-Sector.hasMany(Work, {foreignKey:'sector_id'});
+// Sector.hasMany(Work, {foreignKey:'sector_id'});
+Sector.belongsToMany(Work, {through:SectorWork});
+Work.belongsToMany(Sector, {through:SectorWork});
 Sector.hasMany(WeeklyTask, {foreignKey:'sector_id'});
 User.hasMany(Work, { as: 'PickedWorks', foreignKey: 'pickedBy' });
 User.hasMany(WeeklyTask, { as: 'PickedWeeklyTasks', foreignKey: 'pickedBy' });
 
-Work.belongsTo(Sector, { foreignKey: 'sector_id' });
+// Work.belongsTo(Sector, { foreignKey: 'sector_id' });
 Work.belongsTo(User, { as: 'PickedByUser', foreignKey: 'pickedBy' });
 Work.hasMany(WeeklyTask, { foreignKey: 'workId' });
 
@@ -71,7 +74,7 @@ WeeklyTask.belongsTo(Work, { foreignKey: 'workId' });
 WeeklyTask.belongsTo(Sector, { foreignKey: 'sector_id' });
 WeeklyTask.belongsTo(User, { as: 'PickedByUser', foreignKey: 'pickedBy' });
 
-// Define Association to track Who created and updated Zone
+// Define Association to track Who created and updated Work
 Work.belongsTo(User, {as:"createdBy"});
 Work.belongsTo(User, {as:"updatedBy"});
 
