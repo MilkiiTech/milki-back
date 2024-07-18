@@ -7,8 +7,8 @@
     "can_delete_user":"can_delete_user"
   },
   {
-    "can_create_work":"create_work",
-    "can_view_work":"can_view_work",
+    "can_create_user":"can_create_user",
+    "can_view_user":"can_view_user",
     "can_update_user":"can_update_user",
     "can_delete_user":"can_delete_user"
   },
@@ -47,6 +47,12 @@
     "can_view_sector":"can_view_sector",
     "can_update_sector":"can_update_sector",
     "can_delete_sector":"can_delete_sector"
+  },
+  {
+    "can_create_work":"can_create_work",
+    "can_view_work":"can_view_work",
+    "can_update_work":"can_update_work",
+    "can_delete_work":"can_delete_work"
   }
  ],
  "roles":[
