@@ -5,10 +5,10 @@ const {
   findAll,
   findOne,
   deleteOne
-} = require("../../controllers/zone/zone.controller");
+} = require("../../controllers/work/work.controller");
 const {
-createZoneAdminValidation
-} = require("../../validation/zone/zone.validation");
+createWorkValidation
+} = require("../../validation/work/work.validation");
 const { checkPermission } = require("../../../middlewares/accessControl");
 /**
  * @swagger
@@ -81,7 +81,7 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  */
 
 
-router.post("/create",checkPermission('can_create_zone_admin'),createZoneAdminValidation, create);
+router.post("/create",checkPermission('can_create_work'),createWorkValidation, create);
 /**
  * @swagger
  * /structure/zone/get:

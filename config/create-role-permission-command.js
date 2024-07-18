@@ -1,9 +1,8 @@
 const { Command } = require('commander');
 const bcrypt = require('bcrypt');
-const Role = require("../user/models/role");
+const {Role,Permission} = require("../user/models/association");
 const fs = require('fs');
 const path = require('path');
-const Permission = require("../user/models/permission");
 const program = new Command();
 
 // Define the path to your JSON file

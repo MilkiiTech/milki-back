@@ -57,7 +57,7 @@ Sector.hasMany(Sector, {as:"SubSectors", foreignKey:"parent_sector_id"})
 Sector.belongsTo(Sector, {as:"ParentSector", foreignKey:"parent_sector_id"});
 
 
-// Work, Sector and User Association
+// // Work, Sector and User Association
 Sector.hasMany(Work, {foreignKey:'sector_id'});
 Sector.hasMany(WeeklyTask, {foreignKey:'sector_id'});
 User.hasMany(Work, { as: 'PickedWorks', foreignKey: 'pickedBy' });
@@ -71,6 +71,9 @@ WeeklyTask.belongsTo(Work, { foreignKey: 'workId' });
 WeeklyTask.belongsTo(Sector, { foreignKey: 'sector_id' });
 WeeklyTask.belongsTo(User, { as: 'PickedByUser', foreignKey: 'pickedBy' });
 
+// Define Association to track Who created and updated Zone
+Work.belongsTo(User, {as:"createdBy"});
+Work.belongsTo(User, {as:"updatedBy"});
 
 module.exports = { User, Role, Permission, Zone, Woreda , Sector, Group, Work, WeeklyTask};
 

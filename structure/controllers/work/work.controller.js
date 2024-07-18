@@ -7,46 +7,23 @@ const { v4: uuidv4 } = require('uuid');
 
 exports.create = async (req, res, next)=>{
     // const {username, email, phone_number, password}=req.body;
-    const {users, zoneDetail}=req.body;
-    const {zone_name, city_name, contact_phone_number,email_address}=zoneDetail;
-    try {
-        let password = generatePassword();
-       
-        
-        const hashed_password=await bcrypt.hash(password.toString(), 10);
-        const refinedUsers = users.map(user => {
-            const { username, email, phone_number } = user;
-            return { username, email, phone_number, password:hashed_password };
-        });
-        
+    const {description, plannedStartDate,plannedEndDate,quality,quantity,timeRequired,cost}=req.body;
+    try { 
         const result = await sequelize.transaction(async(t)=>{
-            const currentUser = await User.findByPk(req.user_id);
-            const user = await User.bulkCreate(refinedUsers, {transaction:t});
-            const role1 = await Role.findByPk(users[0].role_id,{transaction:t});
-            const role2 = await Role.findByPk(users[1].role_id,{transaction:t});
-            await user[0].addRole(role1, {transaction:t});
-            await user[1].addRole(role2, {transaction:t});
-            const zone = await Zone.create({
-                zone_name,
-                city_name,
-                phone_number:contact_phone_number,
-                email_address,
-                createdBy:req.user_id
+            const currentUser = await User.findByPk(req.user_id,{transaction:t});
+            const work = await Work.create({
+                description,
+                plannedStartDate,
+                plannedEndDate,
+                quality,
+                quantity,
+                timeRequired,
+                cost
             },{transaction:t})
-            const new_sectors=users.map(sector => {
-                const { sector_name} = sector;
-                const { zone_user_id} = zone;
-                return { sector_name, sector_type:"Zone",zone_id:zone_user_id };
-            });
-            const sector = await Sector.bulkCreate(new_sectors,{transaction:t})
-            await sector[0].setCreatedBy(currentUser, {transaction:t});
-            await sector[1].setCreatedBy(currentUser, {transaction:t});
-            await sector[0].setZone(zone, {transaction:t});
-            await sector[1].setZone(zone, {transaction:t});
-            await zone.setUser(user[0],{ transaction: t });
-            await zone.setUser(user[1],{ transaction: t });
+            await work.setCreatedBy(currentUser, {transaction:t});
+            
            
-        return res.status(201).json(zone);
+        return res.status(201).json(work);
         })
     } catch (error) {
         console.log(error)
@@ -56,14 +33,14 @@ exports.create = async (req, res, next)=>{
 // Find All Zones 
 exports.findAll = async (req, res, next)=>{
     try {
-        const zone = await Zone.findAll({where:{
-            userUserId:req.user_id
+        const work = await Work.findAll({where:{
+            
         }},{include:{
             model:User,
             as:"user",
             
         }});
-        return res.status(200).json(zone)
+        return res.status(200).json(work)
     } catch (error) {
         next(error);
     }

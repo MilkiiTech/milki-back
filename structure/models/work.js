@@ -1,6 +1,12 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../../config/db");
 const Work = sequelize.define("Work", {
+  workId: {
+    type: DataTypes.UUID,
+    defaultValue:DataTypes.UUIDV4,
+    primaryKey: true,
+    allowNull: false,
+  },
   description: {
     type: Sequelize.STRING,
     allowNull: false,
@@ -12,14 +18,14 @@ const Work = sequelize.define("Work", {
   },
   assignedBy: {
     type: Sequelize.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   sectorId: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
+    type: DataTypes.UUID,
+    allowNull: true,
   },
   pickedBy: {
-    type: Sequelize.INTEGER,
+    type: DataTypes.UUID,
     allowNull: true,
   },
   plannedStartDate: {

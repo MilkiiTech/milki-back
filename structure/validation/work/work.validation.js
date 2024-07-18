@@ -1,32 +1,17 @@
-const Joi = require("joi");
+const Joi = require('joi');
 
 const createWorkValidation = (req, res, next) => {
   // Define Joi schema for the form data
-  const phonePattern = /^(\+251|0)9\d{8}$/;
-  
-  const userSchema = Joi.object({
-    username: Joi.string().required(),
-    email: Joi.string()
-      .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
-      .required(),
-    phone_number: Joi.string().pattern(phonePattern).required(),
-    sector_name: Joi.string().required(),
-    role_id: Joi.number().required()
-  });
-
-  const woredaSchema = Joi.object({
-    woreda_name: Joi.string().required(),
-    city_name: Joi.string().required(),
-    email_address: Joi.string()
-      .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
-      .required(),
-    contact_phone_number: Joi.string().pattern(phonePattern).required()
-  });
-
   const schema = Joi.object({
-    users: Joi.array().items(userSchema).required(),
-    woredaDetail: woredaSchema.required(),
-    zone_id: Joi.string().guid({ version: ['uuidv4'] }).required()
+    description: Joi.string().required(),
+    // assignedBy: Joi.number().integer().required(), // Uncomment if this field is needed
+    // sectorId: Joi.number().integer().required(), // Uncomment if this field is needed
+    plannedStartDate: Joi.date().iso().required(),
+    plannedEndDate: Joi.date().iso().required(),
+    quality: Joi.string().valid('High', 'Medium', 'Low').required(),
+    quantity: Joi.number().integer().positive().required(),
+    timeRequired: Joi.number().positive().required(),
+    cost: Joi.number().precision(2).positive().required()
   });
 
   // Validate the request body
@@ -38,5 +23,4 @@ const createWorkValidation = (req, res, next) => {
 
   next();
 };
-
 module.exports = {createWorkValidation};
