@@ -163,3 +163,33 @@ exports.pickWork = async (req, res,next)=>{
         next(error)
     }
 }
+exports.createWeaklyTask= async (req, res, next)=>{
+    try {
+        const {description, workId, sectorId, weekNumber}=req.body;
+        let weeks = weekNumber.toString();
+        let sector = await Sector.findByPk(sectorId);
+        const work = await Work.findByPk(workId);
+        const weeklyTask = await WeeklyTask.create({
+            description,workId, weekNumber:weeks
+        });
+        await weeklyTask.setWork(work);
+        await weeklyTask.setSector(sector);
+        return res.status(200).json(work);
+    } catch (error) {
+        console.log(error);
+        next(error)
+    }
+}
+exports.getWeeklyTask = async (req, res,next)=>{
+    try {
+        const {workId}=req.params
+        const weeklyTask = await WeeklyTask.findAll({
+            where:{
+                workId:workId
+            }
+        })
+        return res.status(200).json(weeklyTask);
+    } catch (error) {
+        next(error);
+    }
+}

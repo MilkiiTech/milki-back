@@ -26,7 +26,7 @@ const WeeklyTask  = sequelize.define("WeeklyTask ", {
       },
       sectorId: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
       pickedBy: {
         type: DataTypes.UUID,

@@ -7,7 +7,9 @@ const {
   deleteOne,
   assignWorkToSector,
   getWorkByUserId,
-pickWork
+pickWork,
+createWeaklyTask,
+getWeeklyTask
 } = require("../../controllers/work/work.controller");
 const {
 createWorkValidation
@@ -153,4 +155,7 @@ router.post("/assign/:workId", checkPermission("can_update_work"),assignWorkToSe
 
 router.get("/getByUserId", checkPermission("can_view_work"),getWorkByUserId)
 router.post("/pickWork", checkPermission("can_update_work"),pickWork)
+
+router.post("/weaklyTask/create", checkPermission("can_update_work"),createWeaklyTask);
+router.get("/weaklyTask/get/:workId", checkPermission("can_update_work"),getWeeklyTask);
 module.exports = router;
