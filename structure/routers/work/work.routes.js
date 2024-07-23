@@ -5,7 +5,9 @@ const {
   findAll,
   findOne,
   deleteOne,
-  assignWorkToSector
+  assignWorkToSector,
+  getWorkByUserId,
+pickWork
 } = require("../../controllers/work/work.controller");
 const {
 createWorkValidation
@@ -147,7 +149,8 @@ router.get("/get/:workId", checkPermission('can_view_work'), findOne);
  */
 router.delete("/:zone_user_id", checkPermission('can_delete_zone_admin'), deleteOne);
 
-
 router.post("/assign/:workId", checkPermission("can_update_work"),assignWorkToSector);
 
+router.get("/getByUserId", checkPermission("can_view_work"),getWorkByUserId)
+router.post("/pickWork", checkPermission("can_update_work"),pickWork)
 module.exports = router;

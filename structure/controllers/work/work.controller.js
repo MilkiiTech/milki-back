@@ -120,9 +120,44 @@ exports.assignWorkToSector = async (req, res,next)=>{
             throw new CustomError("Work Or Sector Id Not Found", 404)
         }
         work.status="assigned";
+        work.assignedBy=req.user_id;
         await work.save();
         await work.addSector(sectors);
         
+        return res.status(200).json(work);
+    } catch (error) {
+        next(error)
+    }
+}
+exports.getWorkByUserId = async (req, res,next)=>{
+    try {
+        const user = await User.findByPk(req.user_id);
+        const work = await Work.findAll({
+            include:[{
+                model:Sector,
+                where:{
+                    sector_id:user.sector_id
+                }
+            },
+        {
+            model:User,
+            as:"PickedByUser",
+            attributes:["user_id",'username','email','phone_number']
+        }]
+        })
+        return res.status(200).json(work);
+    } catch (error) {
+        next(error)
+    }
+}
+exports.pickWork = async (req, res,next)=>{
+    try {
+        const {workId}=req.body;
+        // const user = await User.findByPk(req.user_id);
+        const work = await Work.findByPk(workId);
+        await work.update({
+            pickedBy:req.user_id
+        });
         return res.status(200).json(work);
     } catch (error) {
         next(error)
