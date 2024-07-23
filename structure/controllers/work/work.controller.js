@@ -1,10 +1,10 @@
 const sequelize = require("../../../config/db");
 const {generatePassword}=require("../../../utils/utils")
-const {User, Role, Work,WeeklyTask}= require("../../../user/models/association")
+const {User, Role, Work,WeeklyTask, Sector}= require("../../../user/models/association")
 const bcrypt = require('bcrypt');
 const CustomError = require("../../../error/customError");
 const { v4: uuidv4 } = require('uuid');
-
+const {Op}=require("sequelize");
 exports.create = async (req, res, next)=>{
     // const {username, email, phone_number, password}=req.body;
     const {description, plannedStartDate,plannedEndDate,quality,quantity,timeRequired,cost}=req.body;
@@ -35,13 +35,26 @@ exports.create = async (req, res, next)=>{
 // Find All Zones 
 exports.findAll = async (req, res, next)=>{
     try {
-        const work = await Work.findAll({where:{
+    //     const work = await Work.findAll({where:{
             
-        }},{include:{
-            model:User,
-            as:"user",
-            
-        }});
+    //     }},
+    //     {
+    //         include:[
+    //             {
+    //                 model:User,
+    //                 as:"user",
+                    
+    //             },
+    //             {
+    //                 model:Sector
+    //             }
+    //         ]
+           
+        
+    // });
+    const work = await Work.findAll({include:[
+        {model:User,as:"PickedByUser"},{model:Sector}
+    ]})
         return res.status(200).json(work)
     } catch (error) {
         next(error);
@@ -90,6 +103,27 @@ exports.deleteOne = async (req, res,next)=>{
         const zoneUser = await Zone.findByPk(zone_user_id);
         await zoneUser.destroy();
         return res.status(200).json(zoneUser);
+    } catch (error) {
+        next(error)
+    }
+}
+exports.assignWorkToSector = async (req, res,next)=>{
+    const {sector_ids}=req.body;
+    const {workId}=req.params;
+    try {
+        const work = await Work.findByPk(workId);
+        const sectors = await Sector.findAll({where:{sector_id:{
+            [Op.in]:sector_ids
+        }}});
+        
+        if (!work || !sectors) {
+            throw new CustomError("Work Or Sector Id Not Found", 404)
+        }
+        work.status="assigned";
+        await work.save();
+        await work.addSector(sectors);
+        
+        return res.status(200).json(work);
     } catch (error) {
         next(error)
     }
