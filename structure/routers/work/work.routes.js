@@ -22,77 +22,64 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *     summary: Create new Work
  *     tags: [Work]
  *     requestBody:
- *       description: Request body for creating a new zone
+ *       description: Request body for creating new work
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               users:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     username:
- *                       type: string
- *                     email:
- *                       type: string
- *                     phone_number:
- *                       type: string
- *                     sector_name:
- *                       type: string
- *                     role_id:
- *                       type: integer
- *               zoneDetail:
- *                 type: object
- *                 properties:
- *                   zone_name:
- *                     type: string
- *                   city_name:
- *                     type: string
- *                   email_address:
- *                     type: string
- *                   contact_phone_number:
- *                     type: string
- *                   role_id:
- *                     type: integer
+ *               description:
+ *                 type: string
+ *               assignedBy:
+ *                 type: integer
+ *               sectorId:
+ *                 type: integer
+ *               plannedStartDate:
+ *                 type: string
+ *                 format: date
+ *               plannedEndDate:
+ *                 type: string
+ *                 format: date
+ *               quality:
+ *                 type: string
+ *               quantity:
+ *                 type: integer
+ *               timeRequired:
+ *                 type: integer
+ *               cost:
+ *                 type: number
+ *                 format: double
  *             example:
- *               users:
- *                 - username: "moti"
- *                   email: "moti@gmail.com"
- *                   phone_number: "+251985654322"
- *                   sector_name: "HR"
- *                   role_id: 6
- *                 - username: "etana"
- *                   email: "etana@gmail.com"
- *                   phone_number: "+251987667322"
- *                   sector_name: "BULCHA"
- *                   role_id: 6
- *               zoneDetail:
- *                 zone_name: "Ilu A/BORA"
- *                 city_name: "Metu"
- *                 email_address: "amaedris1@gmail.com"
- *                 contact_phone_number: "+251987654321"
+ *               description: "New work description"
+ *               assignedBy: 1
+ *               sectorId: 1
+ *               plannedStartDate: "2024-07-01"
+ *               plannedEndDate: "2024-07-31"
+ *               quality: "High"
+ *               quantity: 100
+ *               timeRequired: 40
+ *               cost: 2000.00
  *     responses:
  *       200:
  *         description: Successful response
  *         content:
  *           application/json:
  *             example:
- *               message: "Zone created successfully"
+ *               message: "Work created successfully"
  *       400:
  *         description: Invalid request
  */
 
 
+
 router.post("/create",checkPermission('can_create_work'),createWorkValidation, create);
 /**
  * @swagger
- * /structure/zone/get:
+ * /structure/work/get:
  *   get:
- *     summary: Query All Zone 
- *     tags: [Zone]
+ *     summary: Query All Work 
+ *     tags: [Work]
  *     responses:
  *       200:
  *         description: Successful response
@@ -104,52 +91,91 @@ router.post("/create",checkPermission('can_create_work'),createWorkValidation, c
 router.get("/get", checkPermission('can_view_zone_admin'), findAll);
 /**
  * @swagger
- * /structure/zone/get/{zone_user_id}:
+ * /structure/work/get/{workId}:
  *   get:
- *     summary: Fetch Zone by zone_user_id
- *     tags: [Zone]
+ *     summary: Fetch Work by workId
+ *     tags: [Work]
  *     parameters:
- *       - name: zone_user_id
+ *       - name: workId
  *         in: path
  *         required: true
- *         description: The ID of the role
+ *         description: The ID of the work
  *         schema:
  *           type: string
  *         example:
- *             3
+ *             a5166002-89bb-4a3c-a34a-39b44d33c212
  *     responses:
  *       200:
  *         description: Successful response
  *         content:
  *           application/json:
  *             example:
- *               role: {}
+ *               work: {}
  */
 router.get("/get/:workId", checkPermission('can_view_work'), findOne);
 /**
  * @swagger
- * /structure/zone/{zone_user_id}:
+ * /structure/work/{workId}:
  *   delete:
- *     summary: Delete Zone by zone_user_id
- *     tags: [Zone]
+ *     summary: Delete Work by workId
+ *     tags: [Work]
  *     parameters:
- *       - name: zone_user_id
+ *       - name: workId
  *         in: path
  *         required: true
- *         description: The ID of the role
+ *         description: The ID of the work
  *         schema:
  *           type: string
  *         example:
- *             3
+ *             a5166002-89bb-4a3c-a34a-39b44d33c212
  *     responses:
  *       200:
  *         description: Successful response
  *         content:
  *           application/json:
  *             example:
- *               role: {}
+ *               work: {}
  */
-router.delete("/:zone_user_id", checkPermission('can_delete_zone_admin'), deleteOne);
+router.delete("/:workId", checkPermission('can_delete_zone_admin'), deleteOne);
+/**
+ * @swagger
+ * /structure/work/assign/{workId}:
+ *   post:
+ *     summary: Assign Work to WorkId
+ *     tags: [Work]
+ *     parameters:
+ *       - name: workId
+ *         in: path
+ *         required: true
+ *         description: The ID of the work
+ *         schema:
+ *           type: string
+ *         example: a5166002-89bb-4a3c-a34a-39b44d33c212
+ *     requestBody:
+ *       description: Request body for assigning work to sectors
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sector_ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *             example:
+ *               sector_ids:
+ *                 - "5725a78a-98cf-4da8-96ab-cc72a5b5af0a"
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Work assigned successfully"
+ *       400:
+ *         description: Invalid request
+ */
 
 router.post("/assign/:workId", checkPermission("can_update_work"),assignWorkToSector);
 

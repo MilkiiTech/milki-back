@@ -53,7 +53,7 @@ exports.findAll = async (req, res, next)=>{
         
     // });
     const work = await Work.findAll({include:[
-        {model:User,as:"PickedByUser"},{model:Sector}
+        {model:User,as:"PickedByUser"},{model:Sector},{model:WeeklyTask}
     ]})
         return res.status(200).json(work)
     } catch (error) {
@@ -167,8 +167,23 @@ exports.createWeaklyTask= async (req, res, next)=>{
     try {
         const {description, workId, sectorId, weekNumber}=req.body;
         let weeks = weekNumber.toString();
-        let sector = await Sector.findByPk(sectorId);
-        const work = await Work.findByPk(workId);
+        let sector = await Sector.findByPk(sectorId,{include:{model:WeeklyTask}});
+        
+        if (! sector) {
+            throw new CustomError("No Sector Found With That Id",404)
+        }
+        const work = await Work.findByPk(workId,{include:{model:WeeklyTask}});
+        const weeklyTasks = work.dataValues['WeeklyTask s'];
+        console.log(weeklyTasks,"weeklyTasks ");
+        if (Array.isArray(weeklyTasks)) {
+            if (weeklyTasks.length >= 4) {
+              throw new CustomError("You have Exceeded the Number of weeks need to be created", 409);
+            }
+          
+            if (weeklyTasks.some(task => task.weekNumber.toString() === weekNumber)) {
+              throw new CustomError("Week Number Already Found", 409);
+            }
+          }
         const weeklyTask = await WeeklyTask.create({
             description,workId, weekNumber:weeks
         });
@@ -176,7 +191,6 @@ exports.createWeaklyTask= async (req, res, next)=>{
         await weeklyTask.setSector(sector);
         return res.status(200).json(work);
     } catch (error) {
-        console.log(error);
         next(error)
     }
 }

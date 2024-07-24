@@ -24,7 +24,7 @@ const options = {
         },
       ],
     },
-    apis: ['./user/routes/*.js', './structure/routers/zone/*.js', './structure/routers/woreda/*.js', './structure/routers/sector/*.js', './structure/routers/group/*.js'],
+    apis: ['./user/routes/*.js', './structure/routers/zone/*.js', './structure/routers/woreda/*.js', './structure/routers/sector/*.js', './structure/routers/group/*.js', './structure/routers/work/*.js'],
   };
   
   module.exports = options;
