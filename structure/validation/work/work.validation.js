@@ -42,4 +42,21 @@ const createWeaklyTaskValidation = (req, res, next) => {
 
   next();
 };
-module.exports = {createWorkValidation, createWeaklyTaskValidation};
+const updateWeaklyTaskValidation = (req, res, next) => {
+  // Define Joi schema for the form data
+  const schema = Joi.object({
+    weeklyStatus: Joi.string().allow([ 'UNASSIGNED','ASSIGNED','TODO', 'INPROGRESS', 'DONE', 'OTHER']).required(),
+    
+    
+  });
+
+  // Validate the request body
+  const { error } = schema.validate(req.body);
+  if (error) {
+    console.error('Validation Error:', error.details[0].message);
+    return res.status(400).json({ error: error.details[0].message });
+  }
+
+  next();
+};
+module.exports = {createWorkValidation, createWeaklyTaskValidation, updateWeaklyTaskValidation};

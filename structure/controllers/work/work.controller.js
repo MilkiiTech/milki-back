@@ -207,3 +207,29 @@ exports.getWeeklyTask = async (req, res,next)=>{
         next(error);
     }
 }
+exports.getWeeklyTaskById= async (req, res,next)=>{
+    try {
+        const {weekly_task_id}=req.params;
+        const weeklyTask = await WeeklyTask.findByPk(weekly_task_id);
+        if (!weeklyTask) {
+            throw new CustomError("Not Found", 404);
+        }
+        return res.status(200).json(weeklyTask);
+    } catch (error) {
+        next(error);
+    }
+}
+exports.updateWeeklyTask = async (req, res, next)=>{
+    try {
+        const {weekly_task_id}=req.params;
+        const {weeklyStatus}=req.body;
+        const weeklyTask = await WeeklyTask.findByPk(weekly_task_id);
+        if (! weeklyTask) {
+            throw new CustomError("Weekly Task Not Found", 404);
+        }
+        await weeklyTask.update({taskStatus:weeklyStatus});
+        return res.status(200).json(weeklyTask);
+    } catch (error) {
+        next(error);
+    }
+}

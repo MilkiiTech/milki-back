@@ -9,7 +9,9 @@ const {
   getWorkByUserId,
 pickWork,
 createWeaklyTask,
-getWeeklyTask
+getWeeklyTask,
+updateWeeklyTask,
+getWeeklyTaskById
 } = require("../../controllers/work/work.controller");
 const {
 createWorkValidation
@@ -181,7 +183,8 @@ router.post("/assign/:workId", checkPermission("can_update_work"),assignWorkToSe
 
 router.get("/getByUserId", checkPermission("can_view_work"),getWorkByUserId)
 router.post("/pickWork", checkPermission("can_update_work"),pickWork)
-
-router.post("/weaklyTask/create", checkPermission("can_update_work"),createWeaklyTask);
-router.get("/weaklyTask/get/:workId", checkPermission("can_update_work"),getWeeklyTask);
+router.post("/weeklyTask/", checkPermission("can_create_weeklyTask"),createWeaklyTask);
+router.get("/weeklyTask/:weekly_task_id", checkPermission("can_view_weeklyTask"),getWeeklyTaskById);
+router.get("/weeklyTask/:workId", checkPermission("can_view_weeklyTask"),getWeeklyTask);
+router.put("/weeklyTask/:weekly_task_id", checkPermission("can_update_weeklyTask"), updateWeeklyTask);
 module.exports = router;

@@ -53,6 +53,12 @@
     "can_view_work":"can_view_work",
     "can_update_work":"can_update_work",
     "can_delete_work":"can_delete_work"
+  },
+  {
+    "can_create_work":"can_create_weeklyTask",
+    "can_view_weeklyTask":"can_view_weeklyTask",
+    "can_update_weeklyTask":"can_update_weeklyTask",
+    "can_delete_weeklyTask":"can_delete_weeklyTask"
   }
  ],
  "roles":[

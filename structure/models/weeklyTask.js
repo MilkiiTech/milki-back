@@ -11,10 +11,11 @@ const WeeklyTask  = sequelize.define("WeeklyTask ", {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      status: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        defaultValue: 'unassigned', // Weekly task starts as unassigned
+      taskStatus:{
+        type: DataTypes.ENUM,
+        values: [ 'UNASSIGNED','ASSIGNED','TODO', 'INPROGRESS', 'DONE', 'OTHER'],
+        allowNull: true,
+        defaultValue:'UNASSIGNED'
       },
       workId: {
         type: DataTypes.UUID,
