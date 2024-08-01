@@ -77,7 +77,22 @@ WeeklyTask.belongsTo(User, { as: 'PickedByUser', foreignKey: 'pickedBy' });
 // Define Association to track Who created and updated Work
 Work.belongsTo(User, {as:"createdBy"});
 Work.belongsTo(User, {as:"updatedBy"});
-
+WeeklyTask.afterUpdate(async (task, options) => {
+    console.log("hereree you go");
+    const work = await Work.findByPk(task.workId, {
+      include: [WeeklyTask],
+    });
+     console.log(work, "Work")
+    const totalTasks = work.dataValues['WeeklyTask s'] ? work.dataValues['WeeklyTask s'].length : 0;
+    console.log(totalTasks, "totalTasks");
+    const completedTasks = work.WeeklyTasks ? work.WeeklyTasks.filter(task => task.taskStatus === 'DONE').length : 0;
+  
+    // Handle the case where there are no tasks to avoid division by zero
+    const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    
+    console.log(progress, "progress that needs to be updated");
+    await work.update({ progress });
+  });
   
 
 module.exports = { User, Role, Permission, Zone, Woreda , Sector, Group, Work, WeeklyTask};

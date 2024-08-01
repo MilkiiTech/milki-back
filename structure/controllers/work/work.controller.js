@@ -223,12 +223,22 @@ exports.updateWeeklyTask = async (req, res, next)=>{
     try {
         const {weekly_task_id}=req.params;
         const {weeklyStatus}=req.body;
-        const weeklyTask = await WeeklyTask.findByPk(weekly_task_id);
-        if (! weeklyTask) {
+        const weeklyTaskById = await WeeklyTask.findByPk(weekly_task_id, {include:{model:Work}});
+
+        if (! weeklyTaskById) {
             throw new CustomError("Weekly Task Not Found", 404);
         }
-        await weeklyTask.update({taskStatus:weeklyStatus});
-        return res.status(200).json(weeklyTask);
+        await weeklyTaskById.update({taskStatus:weeklyStatus});
+        if (weeklyStatus === "DONE") {
+            const work = await Work.findByPk(weeklyTaskById.Work.workId,{include:{model:WeeklyTask}});
+            // const weeklyTasks = work.dataValues['WeeklyTask s'];
+            const totalTasks = work.dataValues['WeeklyTask s'] ? work.dataValues['WeeklyTask s'].length : 0;
+            const completedTasks = work.dataValues['WeeklyTask s'] ? work.dataValues['WeeklyTask s'].filter(task => task.taskStatus === 'DONE').length : 0;
+            const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+            await work.update({progress:progress})  
+        }
+        
+        return res.status(200).json(weeklyTaskById);
     } catch (error) {
         next(error);
     }
