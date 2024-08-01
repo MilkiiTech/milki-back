@@ -78,6 +78,8 @@ WeeklyTask.belongsTo(User, { as: 'PickedByUser', foreignKey: 'pickedBy' });
 Work.belongsTo(User, {as:"createdBy"});
 Work.belongsTo(User, {as:"updatedBy"});
 
+  
+
 module.exports = { User, Role, Permission, Zone, Woreda , Sector, Group, Work, WeeklyTask};
 
 

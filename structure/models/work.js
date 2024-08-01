@@ -52,6 +52,11 @@ const Work = sequelize.define("Work", {
     type: Sequelize.FLOAT,
     allowNull: false,
   },
+  progress: {
+    type: Sequelize.FLOAT,
+    allowNull: false,
+    defaultValue: 0, // Progress in percentage (0-100)
+  },
   createdAt: {
     type: Sequelize.DATE,
     allowNull: false,
