@@ -14,7 +14,8 @@ updateWeeklyTask,
 getWeeklyTaskById
 } = require("../../controllers/work/work.controller");
 const {
-createWorkValidation
+createWorkValidation,
+updateWeaklyTaskValidation
 } = require("../../validation/work/work.validation");
 const { checkPermission } = require("../../../middlewares/accessControl");
 /**
@@ -326,5 +327,5 @@ router.get("/weeklyTask/:workId", checkPermission("can_view_weeklyTask"),getWeek
  *             example:
  *               work: {}
  */
-router.put("/weeklyTask/:weekly_task_id", checkPermission("can_update_weeklyTask"), updateWeeklyTask);
+router.put("/weeklyTask/:weekly_task_id", checkPermission("can_update_weeklyTask"),updateWeaklyTaskValidation, updateWeeklyTask);
 module.exports = router;

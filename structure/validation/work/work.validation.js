@@ -45,9 +45,7 @@ const createWeaklyTaskValidation = (req, res, next) => {
 const updateWeaklyTaskValidation = (req, res, next) => {
   // Define Joi schema for the form data
   const schema = Joi.object({
-    weeklyStatus: Joi.string().allow([ 'UNASSIGNED','ASSIGNED','TODO', 'INPROGRESS', 'DONE', 'OTHER']).required(),
-    
-    
+    weeklyStatus: Joi.string().valid('UNASSIGNED', 'ASSIGNED', 'TODO', 'INPROGRESS', 'DONE', 'OTHER').required()
   });
 
   // Validate the request body
