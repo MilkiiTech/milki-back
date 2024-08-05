@@ -209,7 +209,6 @@ exports.assignRolePermission = async (req, res,  next)=>{
         next(error)
     }
 }
-
 // assing Role To Users
 exports.assignRoleToUser = async (req, res,  next)=>{
     try {
@@ -230,7 +229,6 @@ exports.assignRoleToUser = async (req, res,  next)=>{
         next(error)
     }
 }
-
 exports.createUser = async (req, res, next)=>{
     try {
         let transaction;

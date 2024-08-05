@@ -158,7 +158,7 @@ exports.findAllOwnSector = async (req, res, next)=>{
 exports.findOne = async (req, res, next)=>{
     try {
         const {sector_id}=req.params
-        const sector = await Sector.findAll(sector_id,{
+        const sector = await Sector.findByPk(sector_id,{
             include: [
               {
                 model: Zone,
@@ -211,6 +211,9 @@ exports.findOne = async (req, res, next)=>{
               ]
             }
           });
+          if (!sector) {
+            throw new CustomError(`Sector Not Found With Id: ${sector_id} Not Found`, 404)
+          }
         return res.status(200).json(sector)
     } catch (error) {
         next(error);
