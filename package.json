@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "cross-env NODE_ENV=test node index.js --port 8080",
-    "dev": "cross-env NODE_ENV=development nodemon index.js --port 8080",
+    "dev": "cross-env NODE_ENV=development node index.js --port 8080",
     "prod": "cross-env NODE_ENV=production node index.js --port 8080",
     "register-superadmin": "cross-env NODE_ENV=development node config/command.js",
     "populate-role": "cross-env NODE_ENV=development node config/create-role-permission-command.js"

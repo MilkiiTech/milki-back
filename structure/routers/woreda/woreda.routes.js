@@ -102,7 +102,7 @@ router.get("/get",checkPermission('can_view_woreda_admin'), findAll);
 /**
  * @swagger
  * /structure/woreda/get/{woreda_id}:
- *   post:
+ *   get:
  *     summary: Get Woreda by woreda Id
  *     tags: [Woreda]
  *     parameters:
