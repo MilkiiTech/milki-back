@@ -7,21 +7,52 @@ const { v4: uuidv4 } = require('uuid');
 const {PREDEFINED_SECTORS}=require("../../../config/constant");
 const {Sequelize, Op}=require("sequelize");
 exports.create = async (req, res, next)=>{
-    const {sector_name, sector_type,email_address,phone_number,address, zone_user_id, woreda_id,parent_sector_id}=req.body
+    const {sector_name,email_address,phone_number,address,parent_sector_id}=req.body
     try {
-        const user = await User.findByPk(req.user_id);
+        const user = await User.findByPk(req.user_id, {include:{
+          model:Sector,
+          as:"sector",
+          include:[
+            {
+              model:Zone
+            },
+            {
+              model:Woreda
+            
+            }
+          ]
+       
+
+        }});
+        console.log(user, "User")
+        
+        // let zone;
+        // let woreda;
+        // if (zone_user_id !=null) {
+        //     zone = await Zone.findByPk(zone_user_id);
+        // }
+        // if (woreda_id != null) {
+        //     woreda = await Woreda.findByPk(woreda_id);
+        // }
+        let woreda_id;
+        let zone_user_id;
         let zone;
         let woreda;
-        if (zone_user_id !=null) {
-            zone = await Zone.findByPk(zone_user_id);
-        }
-        if (woreda_id != null) {
+        if (user.sector !=null && user.sector != undefined) {
+          if(user?.sector?.woreda_id !=null){
+            woreda_id=user?.sector?.woreda_id;
             woreda = await Woreda.findByPk(woreda_id);
+          }
+          if(user?.sector?.zone_id !=null){
+            zone_user_id=user?.sector?.zone_id;
+            zone = await Zone.findByPk(zone_user_id);
+          }
+          
         }
 
             const sector = await Sector.create({
                 sector_name:sector_name,
-                sector_type:sector_type,
+                sector_type:user?.sector?.sector_type,
                 email_address:email_address,
                 phone_number:phone_number,
                 address:address,
