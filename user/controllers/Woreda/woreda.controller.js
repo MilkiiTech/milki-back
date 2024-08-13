@@ -16,7 +16,6 @@ exports.create = async (req, res, next)=>{
         const hashed_password=await bcrypt.hash(password.toString(), 10);
         transaction=sequelize.transaction();
         const user = await User.create({
-           
             username,
             email,
             password:hashed_password,
@@ -40,10 +39,8 @@ exports.create = async (req, res, next)=>{
     } catch (error) {
         console.log(error, "error");
         if (transaction) await transaction.rollback();
-        next(error)
+        next(error);
     }
-    
-
 }
 // Find All Zones 
 exports.findAll = async (req, res, next)=>{

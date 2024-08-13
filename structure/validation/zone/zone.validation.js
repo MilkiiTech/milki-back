@@ -20,7 +20,9 @@ const createZoneAdminValidation = (req, res, next) => {
     email_address: Joi.string()
       .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
       .required(),
-    contact_phone_number: Joi.string().pattern(phonePattern).required()
+    contact_phone_number: Joi.string().pattern(phonePattern).required(),
+    address: Joi.string()
+    
   });
 
   const schema = Joi.object({

@@ -8,7 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 exports.create = async (req, res, next)=>{
     // const {username, email, phone_number, password}=req.body;
     const {users, zoneDetail}=req.body;
-    const {zone_name, city_name, contact_phone_number,email_address}=zoneDetail;
+    const {zone_name, city_name, contact_phone_number,email_address, address}=zoneDetail;
     try {
         let password = generatePassword();
        
@@ -31,8 +31,9 @@ exports.create = async (req, res, next)=>{
                 city_name,
                 phone_number:contact_phone_number,
                 email_address,
-                createdBy:req.user_id
-            },{transaction:t})
+                address,
+                createdById:req.user_id
+            },{transaction:t});
             const new_sectors=users.map(sector => {
                 const { sector_name} = sector;
                 const { zone_user_id} = zone;
@@ -56,13 +57,31 @@ exports.create = async (req, res, next)=>{
 // Find All Zones 
 exports.findAll = async (req, res, next)=>{
     try {
-        const zone = await Zone.findAll({where:{
-            // userUserId:req.user_id
-        }},{include:{
-            model:User,
-            as:"user",
-            
-        }});
+        const zone = await Zone.findAll({where:{}, include:[
+            {
+                model:User,
+                as:"user",
+                attributes:{
+                    exclude:['password']
+                }
+                
+                
+            },
+            {
+                model:User,
+                as:"createdBy",
+                attributes:{
+                    exclude:['password']
+                }
+            },
+            {
+                model:User,
+                as:"updatedBy",
+                attributes:{
+                    exclude:['password']
+                }
+            }
+        ]});
         return res.status(200).json(zone)
     } catch (error) {
         next(error);
@@ -76,15 +95,24 @@ exports.findOne = async (req, res, next)=>{
             {
                 model:User,
                 as:"user",
+                attributes:{
+                    exclude:['password']
+                }
                 
             },
             {
                 model:User,
-                as:"createdBy"
+                as:"createdBy",
+                attributes:{
+                    exclude:['password']
+                }
             },
             {
                 model:User,
-                as:"updatedBy"
+                as:"updatedBy",
+                attributes:{
+                    exclude:['password']
+                }
             }
         ], attributes:{
             exclude:['updatedByUserId', 'createdByUserId']

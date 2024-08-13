@@ -6,7 +6,9 @@ const createSectorValidation = (req, res, next) => {
     const schema = Joi.object({
       sector_name: Joi.string().required(),
       sector_type: Joi.string().valid('Zone', 'Woreda').required(),
-      
+      email_address:Joi.string(),
+      phone_number:Joi.string(),
+      address:Joi.string(),
       zone_user_id: Joi.string().guid({ version: ['uuidv4'] }).when('sector_type', {
         is: 'Zone',
         then: Joi.required(),

@@ -12,6 +12,20 @@ const Sector = sequelize.define('Sector', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  phone_number:{
+    type:DataTypes.STRING,
+    allowNull:true
+
+  },
+  email_address:{
+    type:DataTypes.STRING,
+    allowNull:true
+
+  },
+  address:{
+    type:DataTypes.STRING,
+    allowNull:true
+  },
   sector_type: {
     type: DataTypes.ENUM('Zone', 'Woreda'),
     allowNull: false,
