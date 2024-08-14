@@ -7,7 +7,8 @@ const { v4: uuidv4 } = require('uuid');
 const {PREDEFINED_SECTORS}=require("../../../config/constant");
 const {Sequelize, Op}=require("sequelize");
 exports.create = async (req, res, next)=>{
-    const {sector_name,email_address,phone_number,address,parent_sector_id}=req.body
+    const {sector_name,email_address,phone_number,address}=req.body;
+    let {parent_sector_id}=req.body;
     try {
         const user = await User.findByPk(req.user_id, {include:{
           model:Sector,
@@ -24,7 +25,6 @@ exports.create = async (req, res, next)=>{
        
 
         }});
-        console.log(user, "User")
       
         let woreda_id;
         let zone_user_id;
@@ -38,6 +38,7 @@ exports.create = async (req, res, next)=>{
           if(user?.sector?.zone_id !=null){
             zone_user_id=user?.sector?.zone_id;
             zone = await Zone.findByPk(zone_user_id);
+            parent_sector_id=null;
           }
           
         }

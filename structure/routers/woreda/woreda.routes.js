@@ -37,6 +37,12 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *                       type: string
  *                     sector_name:
  *                       type: string
+ *                     sector_phone_number:
+ *                       type: string
+ *                     sector_email_address:
+ *                       type: string
+ *                     sector_address:
+ *                       type: string
  *                     role_id:
  *                       type: integer
  *               woredaDetail:
@@ -50,27 +56,29 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *                     type: string
  *                   contact_phone_number:
  *                     type: string
- *               zone_id:
- *                 type: string
- *                 format: uuid
  *             example:
  *               users:
- *                 - username: "moti"
- *                   email: "moti@gmail.com"
- *                   phone_number: "+251985654322"
+ *                 - username: "dsert3"
+ *                   email: "tame@gmail.com"
+ *                   phone_number: "+251985654321"
  *                   sector_name: "HR"
+ *                   sector_phone_number: "+251985654321"
+ *                   sector_email_address: "email@gmail.com"
+ *                   sector_address: "Addis Abeba"
  *                   role_id: 1
- *                 - username: "etana"
- *                   email: "etana@gmail.com"
- *                   phone_number: "+251987667322"
+ *                 - username: "amir1234e56"
+ *                   email: "muhidin@gmail.com"
+ *                   phone_number: "+251987667323"
  *                   sector_name: "BULCHA"
+ *                   sector_phone_number: "251985654321"
+ *                   sector_email_address: "email@gmail.com"
+ *                   sector_address: "Addis Abeba"
  *                   role_id: 1
  *               woredaDetail:
- *                 woreda_name: "Didesa"
+ *                 woreda_name: "Didedsa12346"
  *                 city_name: "Dembi"
  *                 email_address: "amaedris1@gmail.com"
  *                 contact_phone_number: "+251987654321"
- *               zone_id: "039e77e3-2134-4d89-bd92-68ded5b6197d"
  *     responses:
  *       200:
  *         description: Successful response
@@ -81,6 +89,7 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *       400:
  *         description: Invalid request
  */
+
 
 
 router.post("/create",checkPermission('can_create_woreda_admin'),createWoredaValidation, create);

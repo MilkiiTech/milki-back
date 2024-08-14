@@ -17,29 +17,71 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  * @swagger
  * /structure/sector/create:
  *   post:
- *     summary: Create new Sector
- *     tags: [Sector]
+ *     summary: Create new Sector and Users
+ *     tags: [Sector, User]
  *     requestBody:
- *       description: Request body for creating Sector
+ *       description: Request body for creating Sector and associated Users
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               sector_name:
- *                 type: string
- *               sector_type:
- *                 type: string
- *               woreda_id:
- *                 type: string
- *               parent_sector_id:
- *                 type: string
+ *               users:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     username:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     phone_number:
+ *                       type: string
+ *                     sector_name:
+ *                       type: string
+ *                     sector_phone_number:
+ *                       type: string
+ *                     sector_email_address:
+ *                       type: string
+ *                     sector_address:
+ *                       type: string
+ *                     role_id:
+ *                       type: integer
+ *               woredaDetail:
+ *                 type: object
+ *                 properties:
+ *                   woreda_name:
+ *                     type: string
+ *                   city_name:
+ *                     type: string
+ *                   email_address:
+ *                     type: string
+ *                   contact_phone_number:
+ *                     type: string
  *             example:
- *                sector_name: "Communication Dides"
- *                sector_type: "Woreda"
- *                woreda_id: "ff3445f7-61f6-4c1c-aa46-c98d882c85b8"
- *                parent_sector_id: "68e5796e-d160-4f4f-b799-1bdb1c2d7348"
+ *               users: 
+ *                 - username: "dsert3"
+ *                   email: "tame@gmail.com"
+ *                   phone_number: "+251985654321"
+ *                   sector_name: "HR"
+ *                   sector_phone_number: "+251985654321"
+ *                   sector_email_address: "email@gmail.com"
+ *                   sector_address: "Addis Abeba"
+ *                   role_id: 1
+ *                 - username: "amir1234e56"
+ *                   email: "muhidin@gmail.com"
+ *                   phone_number: "+251987667323"
+ *                   sector_name: "BULCHA"
+ *                   sector_phone_number: "251985654321"
+ *                   sector_email_address: "email@gmail.com"
+ *                   sector_address: "Addis Abeba"
+ *                   role_id: 1
+ *               woredaDetail:
+ *                 woreda_name: "Didedsa12346"
+ *                 city_name: "Dembi"
+ *                 email_address: "amaedris1@gmail.com"
+ *                 contact_phone_number: "+251987654321"
  *     responses:
  *       200:
  *         description: Successful response
@@ -50,6 +92,8 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *       400:
  *         description: Invalid request
  */
+
+
 
 router.post("/create",checkPermission('can_create_sector'),createSectorValidation, create);
 /**

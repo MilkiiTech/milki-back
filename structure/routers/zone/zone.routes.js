@@ -50,25 +50,26 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *                     type: string
  *                   contact_phone_number:
  *                     type: string
- *                   role_id:
- *                     type: integer
+ *                   address:
+ *                     type: string
  *             example:
  *               users:
- *                 - username: "moti"
+ *                 - username: "munir"
  *                   email: "moti@gmail.com"
- *                   phone_number: "+251985654322"
+ *                   phone_number: "+251985654323"
  *                   sector_name: "HR"
  *                   role_id: 6
- *                 - username: "etana"
+ *                 - username: "faysal"
  *                   email: "etana@gmail.com"
- *                   phone_number: "+251987667322"
+ *                   phone_number: "+251987667324"
  *                   sector_name: "BULCHA"
  *                   role_id: 6
  *               zoneDetail:
- *                 zone_name: "Ilu A/BORA"
+ *                 zone_name: "Arsi245"
  *                 city_name: "Metu"
  *                 email_address: "amaedris1@gmail.com"
- *                 contact_phone_number: "+251987654321"
+ *                 contact_phone_number: "+251987654325"
+ *                 address: "Addis Abeba"
  *     responses:
  *       200:
  *         description: Successful response
@@ -79,8 +80,6 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *       400:
  *         description: Invalid request
  */
-
-
 router.post("/create",checkPermission('can_create_zone_admin'),createZoneAdminValidation, create);
 /**
  * @swagger
