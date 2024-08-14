@@ -25,15 +25,7 @@ exports.create = async (req, res, next)=>{
 
         }});
         console.log(user, "User")
-        
-        // let zone;
-        // let woreda;
-        // if (zone_user_id !=null) {
-        //     zone = await Zone.findByPk(zone_user_id);
-        // }
-        // if (woreda_id != null) {
-        //     woreda = await Woreda.findByPk(woreda_id);
-        // }
+      
         let woreda_id;
         let zone_user_id;
         let zone;

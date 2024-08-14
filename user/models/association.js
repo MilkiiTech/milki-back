@@ -18,7 +18,8 @@ Permission.belongsToMany(Role, { through: 'RolePermission' });
 
 // Define Association Of Zone to Users
 
-Zone.belongsTo(User, {as:"user"});
+// Zone.hasMany(User, {as:"users"});
+User.belongsTo(Zone, {as:"zone"})
 // Define Association to track Who created and updated Zone
 Zone.belongsTo(User, {as:"createdBy",foreignKey: "createdById"});
 Zone.belongsTo(User, {as:"updatedBy",foreignKey: "updatedById"});

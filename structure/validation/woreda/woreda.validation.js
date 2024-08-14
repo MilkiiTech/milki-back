@@ -11,6 +11,9 @@ const createWoredaValidation = (req, res, next) => {
       .required(),
     phone_number: Joi.string().pattern(phonePattern).required(),
     sector_name: Joi.string().required(),
+    sector_phone_number:Joi.string(),
+    sector_email_address:Joi.string(),
+    sector_address:Joi.string(),
     role_id: Joi.number().required()
   });
 
@@ -26,7 +29,7 @@ const createWoredaValidation = (req, res, next) => {
   const schema = Joi.object({
     users: Joi.array().items(userSchema).required(),
     woredaDetail: woredaSchema.required(),
-    zone_id: Joi.string().guid({ version: ['uuidv4'] }).required()
+    // zone_id: Joi.string().guid({ version: ['uuidv4'] }).required()
   });
 
   // Validate the request body

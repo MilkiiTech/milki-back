@@ -44,9 +44,11 @@ exports.create = async (req, res, next)=>{
             await sector[1].setCreatedBy(currentUser, {transaction:t});
             await sector[0].setZone(zone, {transaction:t});
             await sector[1].setZone(zone, {transaction:t});
-            await zone.setUser(user[0],{ transaction: t });
-            await zone.setUser(user[1],{ transaction: t });
-           
+            // await zone.setUser(user[0],{ transaction: t });
+            // await zone.setUser(user[1],{ transaction: t });
+           // Add multiple users to the sector at once
+           await sector[0].setUsers([user[0], user[1]], { transaction: t });
+           await sector[1].setUsers([user[0], user[1]], { transaction: t });
         return res.status(201).json(zone);
         })
     } catch (error) {

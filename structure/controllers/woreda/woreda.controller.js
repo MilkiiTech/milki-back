@@ -1,10 +1,10 @@
 const sequelize = require("../../../config/db");
 const {generatePassword}=require("../../../utils/utils")
-const {User, Role, Zone,Woreda}= require("../../../user/models/association")
+const {User, Role, Zone,Woreda, Sector}= require("../../../user/models/association")
 const bcrypt = require('bcrypt');
 const CustomError = require("../../../error/customError");
 exports.create = async (req, res, next)=>{ 
-    const {users, woredaDetail, zone_id}=req.body; 
+    const {users, woredaDetail}=req.body; 
     const {woreda_name, city_name, contact_phone_number,email_address}=woredaDetail;
     try {
         let password = generatePassword();
@@ -14,11 +14,43 @@ exports.create = async (req, res, next)=>{
             return { username, email, phone_number, password:hashed_password };
         }); 
         const result = await sequelize.transaction(async(t)=>{
-            const zone = await Zone.findByPk(zone_id);
-            const currentUser = await User.findByPk(req.user_id)
-            if (zone==null) {
-                t.rollback();
-                throw new CustomError(`Bad Request Zone is Not Found With Id: ${zone_id}`, 400);
+            // const zone = await Zone.findByPk(zone_id);
+            const currentUser = await User.findByPk(req.user_id, {include:{
+                model:Sector,
+                as:"sector",
+                include:[
+                    {
+                        model:Zone,
+                        
+                    },
+                    {
+                        model:Woreda,
+                        include:{
+                            model:Zone,
+                            as:'zone'
+                        }
+                    }
+                ],
+                
+              }});
+            let zone_user_id;
+            let zone=null;
+            let users_woreda=null;
+            let zone_sector=false;
+            let woreda_sector=false;
+            if (currentUser?.sector?.sector_type === 'Zone') {
+                zone_user_id = currentUser?.sector?.zone_id;
+                zone=currentUser?.sector?.Zone
+                zone_sector=true;
+                
+            }
+            if (currentUser?.sector?.sector_type === 'Woreda') {
+                zone_user_id = currentUser?.sector?.woreda_id;
+                users_woreda=currentUser?.sector?.Woreda;
+                zone = currentUser?.sector?.Woreda?.zone;
+                woreda_sector=true
+                
+                
             }
             const role1 = await Role.findByPk(users[0].role_id,{transaction:t});
             const role2 = await Role.findByPk(users[1].role_id,{transaction:t});
@@ -33,8 +65,27 @@ exports.create = async (req, res, next)=>{
                 
             },{transaction:t})
             // await user.addZone(zone);
-            await woreda.setUser(user[0],{ transaction: t });
-            await woreda.setUser(user[1],{ transaction: t });
+            const new_sectors=users.map(sector => {
+                const { sector_name,sector_phone_number,sector_email_address,sector_address} = sector;
+                return { sector_name, sector_type:"Woreda", phone_number:sector_phone_number, email_address:sector_email_address,address:sector_address, zone_id:zone_user_id };
+            });
+            const sector = await Sector.bulkCreate(new_sectors,{transaction:t})
+            await sector[0].setCreatedBy(currentUser, {transaction:t});
+            await sector[1].setCreatedBy(currentUser, {transaction:t});
+            if (zone_sector === true) {
+                console.log("This is Zonne Sector....................................................");
+                await sector[0].setZone(zone, {transaction:t});
+                await sector[1].setZone(zone, {transaction:t});
+            }
+            if (woreda_sector === true) {
+                 // Add Sector to  
+                 console.log("This is Woreda Sector........................................");
+            await sector[0].setWoreda(users_woreda, {transaction:t});
+            await sector[1].setWoreda(users_woreda, {transaction:t});
+            }
+            // Add multiple users to the sector at once
+            await sector[0].setUsers([user[0], user[1]], { transaction: t });
+            await sector[1].setUsers([user[0], user[1]], { transaction: t });
             await woreda.setZone(zone, {transaction:t});
             await woreda.setCreatedBy(currentUser, {transaction:t});
             
