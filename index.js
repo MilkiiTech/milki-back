@@ -11,6 +11,7 @@ const debug = require("debug")("app:server");
 const config = require("./config/config");
 const db = require("./config/db");
 const options=require("./config/swagger.config")
+const path = require("path");
 // const logger = require("./configs/logger");
 const fs = require("fs");
 const http = require("http");
@@ -32,7 +33,7 @@ app.use(
 const specs = swaggerJsdoc(options);
 
 app.use(cors("*"));
-app.use("/image/uploads/", express.static("uploads"));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/user", user);
 app.use("/api/structure", structure);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));

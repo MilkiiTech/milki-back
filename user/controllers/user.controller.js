@@ -232,10 +232,10 @@ exports.assignRoleToUser = async (req, res,  next)=>{
 exports.createUser = async (req, res, next)=>{
     try {
         let transaction;
-        const {username, email, phone_number, sector_id, role_id}=req.body;
-        console.log(req.body);
+        const {employee_id, first_name, last_name, middle_name,nationality,marital_status,gender,date_of_birth,address, username, email, phone_number, sector_id, role_id}=req.body;
+        console.log(req.body)
+        console.log(req.files);
         let password = generatePassword().toString();
-        console.log(password, "password");
         const hashed_password=await bcrypt.hash(password, 10);
         transaction=sequelize.transaction();
         const result = await sequelize.transaction(async(t)=>{
@@ -249,7 +249,19 @@ exports.createUser = async (req, res, next)=>{
                 username,
                 email,
                 password:hashed_password,
-                phone_number
+                phone_number,
+                employee_id,
+                first_name,
+                last_name,
+                middle_name,
+                nationality,
+                marital_status,
+                gender,
+                date_of_birth,
+                address,
+                valid_identification: req.files['valid_identification'] ? req.files['valid_identification'][0].filename : null,
+                gurantee_document: req.files['gurantee_document'] ? req.files['gurantee_document'][0].filename : null,
+                educational_document: req.files['educational_document'] ? req.files['educational_document'][0].filename : null
             }, {transaction:t})
             await user.addRole(role, {transaction:t});
             await user.setSector(sector, {transaction:t});
@@ -257,6 +269,7 @@ exports.createUser = async (req, res, next)=>{
         return res.status(201).json(user);
         })
     } catch (error) {
+        console.log(error, "Error");
         next(error);
     }
 }

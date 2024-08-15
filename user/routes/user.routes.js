@@ -25,6 +25,7 @@ assignUserToSectorValidation,
 removeUserFromSectorValidation
 } = require("../validation/user.validation");
 const { checkPermission } = require("../../middlewares/accessControl");
+const upload = require("../../config/file-upload");
 router.post("/signup",checkPermission('can_create_user'),registrationValidation, registerUser);
 // create user that works under sectors only Hr of That level can Do this
 /**
@@ -67,7 +68,7 @@ router.post("/signup",checkPermission('can_create_user'),registrationValidation,
  *       400:
  *         description: Invalid request
  */
-router.post("/create", checkPermission('can_create_user'), creteUserValidation,createUser);
+router.post("/create", checkPermission('can_create_user'),upload,createUser);
 /**
  * @swagger
  * /user/assignUserToSector:
