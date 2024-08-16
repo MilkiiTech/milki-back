@@ -12,7 +12,8 @@ const {
   assignRoleToUser,
   createUser,
   assignUserToSector,
-  removeUserFromSector
+  removeUserFromSector,
+  getAllUsers
 } = require("../controllers/user.controller");
 const {
 registrationValidation,
@@ -38,26 +39,89 @@ router.post("/signup",checkPermission('can_create_user'),registrationValidation,
  *       description: Request body for creating a new user
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
+ *               employee_id:
+ *                 type: string
+ *               first_name:
+ *                 type: string
+ *               middle_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *               nationality:
+ *                 type: string
+ *               marital_status:
+ *                 type: string
+ *               gender:
+ *                 type: string
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
  *               username:
  *                 type: string
  *               email:
  *                 type: string
  *               phone_number:
  *                 type: string
- *               role_id:
- *                 type: integer
  *               sector_id:
  *                 type: string
+ *               role_id:
+ *                 type: integer
+ *               address[street]:
+ *                 type: string
+ *               address[city]:
+ *                 type: string
+ *               address[zipCode]:
+ *                 type: string
+ *               address[state]:
+ *                 type: string
+ *               valid_identification:
+ *                 type: string
+ *                 format: binary
+ *               educational_document:
+ *                 type: string
+ *                 format: binary
+ *               gurantee_document:
+ *                 type: string
+ *                 format: binary
+ *             required:
+ *               - employee_id
+ *               - first_name
+ *               - last_name
+ *               - nationality
+ *               - gender
+ *               - username
+ *               - email
+ *               - phone_number
+ *               - sector_id
+ *               - role_id
+ *               - valid_identification
+ *               - educational_document
+ *               - gurantee_document
  *             example:
- *               username: "zone_hr"
+ *               employee_id: "heloo"
+ *               first_name: "Amir"
+ *               middle_name: "Edris"
+ *               last_name: "Ahmed"
+ *               nationality: "Ethiopia"
+ *               marital_status: "SINGLE"
+ *               gender: "MALE"
+ *               date_of_birth: "1998-02-03"
+ *               username: "asdfghjkld"
  *               email: "amaedris1@gmail.com"
- *               phone_number: "+251987654321"
- *               role_id: 48
- *               sector_id: "3208d77c-b033-4890-8150-c1270084cff4"
+ *               phone_number: "0987654321"
+ *               sector_id: "bf2bda19-f0d9-4e90-b715-4f852365b2af"
+ *               role_id: 11
+ *               address[street]: "qwerty"
+ *               address[city]: "Addis Abeba"
+ *               address[zipCode]: "asfghhj"
+ *               address[state]: "Ethiopia"
+ *               valid_identification: "file"
+ *               educational_document: "file"
+ *               gurantee_document: "file"
  *     responses:
  *       200:
  *         description: Successful response
@@ -68,7 +132,26 @@ router.post("/signup",checkPermission('can_create_user'),registrationValidation,
  *       400:
  *         description: Invalid request
  */
-router.post("/create", checkPermission('can_create_user'),upload,createUser);
+
+
+router.post("/create", checkPermission('can_create_user'),upload,creteUserValidation,createUser);
+/**
+ * @swagger
+ * /user/get:
+ *   get:
+ *     summary: Query All Users 
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             example:
+ *               role: {}
+ */
+router.get("/get",checkPermission('can_view_user'), getAllUsers)
 /**
  * @swagger
  * /user/assignUserToSector:

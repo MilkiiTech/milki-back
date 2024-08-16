@@ -2,7 +2,7 @@ const CustomError = require("../../error/customError");
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const config = require('../../config/config');
-const {Role, User, Sector, Group }=require("../models/association")
+const {Role, User, Sector, Group, Zone }=require("../models/association")
 const Permission = require("../models/permission");
 const {generatePassword}= require("../../utils/utils")
 const {Op}=require("sequelize");
@@ -327,6 +327,16 @@ exports.removeUserFromSector = async (req, res,next)=>{
         }
         
         
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Get All Users
+exports.getAllUsers = async (req, res, next)=>{
+    try {
+        const user = await User.findAll({where:{}, attributes:{exclude:['password']}});
+        return res.status(200).json(user);
     } catch (error) {
         next(error);
     }
