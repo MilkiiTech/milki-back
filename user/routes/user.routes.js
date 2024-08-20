@@ -134,7 +134,7 @@ router.post("/signup",checkPermission('can_create_user'),registrationValidation,
  */
 
 
-router.post("/create", checkPermission('can_create_user'),upload,creteUserValidation,createUser);
+router.post("/create", checkPermission('can_create_user'),upload,createUser);
 /**
  * @swagger
  * /user/get:
