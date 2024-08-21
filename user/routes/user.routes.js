@@ -21,7 +21,7 @@ loginValidation,
 createGroupValidation,
 updateGroupValidation,
 assignRoleToUserValidation,
-creteUserValidation,
+createUserValidation,
 assignUserToSectorValidation,
 removeUserFromSectorValidation
 } = require("../validation/user.validation");
@@ -134,7 +134,7 @@ router.post("/signup",checkPermission('can_create_user'),registrationValidation,
  */
 
 
-router.post("/create", checkPermission('can_create_user'),upload,createUser);
+router.post("/create", checkPermission('can_create_user'),createUserValidation,upload,createUser);
 /**
  * @swagger
  * /user/get:
