@@ -60,15 +60,15 @@ exports.create = async (req, res, next)=>{
 exports.findAll = async (req, res, next)=>{
     try {
         const zone = await Zone.findAll({where:{}, include:[
-            {
-                model:User,
-                as:"user",
-                attributes:{
-                    exclude:['password']
-                }
+            // {
+            //     model:User,
+            //     as:"user",
+            //     attributes:{
+            //         exclude:['password']
+            //     }
                 
                 
-            },
+            // },
             {
                 model:User,
                 as:"createdBy",
@@ -82,10 +82,16 @@ exports.findAll = async (req, res, next)=>{
                 attributes:{
                     exclude:['password']
                 }
-            }
+            },
+
+        {
+            model:Sector
+        }
+
         ]});
         return res.status(200).json(zone)
     } catch (error) {
+        console.log(error, "Error");
         next(error);
     }
 }
@@ -94,14 +100,14 @@ exports.findOne = async (req, res, next)=>{
     try {
         const {zone_user_id}=req.params
         const zone = await Zone.findByPk(zone_user_id,{include:[
-            {
-                model:User,
-                as:"user",
-                attributes:{
-                    exclude:['password']
-                }
+            // {
+            //     model:User,
+            //     as:"user",
+            //     attributes:{
+            //         exclude:['password']
+            //     }
                 
-            },
+            // },
             {
                 model:User,
                 as:"createdBy",
@@ -115,6 +121,9 @@ exports.findOne = async (req, res, next)=>{
                 attributes:{
                     exclude:['password']
                 }
+            },
+            {
+                model:Sector
             }
         ], attributes:{
             exclude:['updatedByUserId', 'createdByUserId']
