@@ -190,9 +190,9 @@ exports.findOne = async (req, res, next)=>{
               {
                 model: Zone,
                 required: false,
-                where: {
-                  userUserId: req.user_id
-                }
+                // where: {
+                //   userUserId: req.user_id
+                // }
               },
               {
                 model: Woreda,

@@ -124,7 +124,7 @@ const createUserValidation = (req, res, next) => {
   // Define phone pattern
   const phonePattern = /^(\+251|0)9\d{8}$/;
 
-  // Define Joi schema for the form data
+  // Define Joi schema for the form data (excluding files)
   const schema = Joi.object({
     employee_id: Joi.string().required(),
     first_name: Joi.string().required(),
@@ -149,11 +149,6 @@ const createUserValidation = (req, res, next) => {
       zipCode: Joi.string().optional(),
       state: Joi.string().optional(),
     }).optional(),
-
-    // File uploads (binary format)
-    valid_identification: Joi.any().required(),
-    educational_document: Joi.any().required(),
-    gurantee_document: Joi.any().required(),
   });
 
   // Validate the request body against the schema
@@ -163,9 +158,15 @@ const createUserValidation = (req, res, next) => {
     return res.status(400).json({ errors: error.details });
   }
 
+  // Validate file uploads (ensure required files are present)
+  if (!req.files || !req.files.valid_identification || !req.files.educational_document || !req.files.gurantee_document) {
+    return res.status(400).json({ errors: 'All required files must be uploaded' });
+  }
+
   // If validation passes, move to the next middleware or route handler
   next();
 };
+
 const assignUserToSectorValidation = (req, res, next) => {
   // Define Joi schema for the form data
   const schema = Joi.object({
