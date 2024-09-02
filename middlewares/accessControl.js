@@ -28,11 +28,11 @@ exports.checkPermission = (permission) => {
             as: "permissions"
           }
         });
-  
-        if (role && role.permissions.some(perm => perm.name === permission)) {
-          req.user_id = user.user_id;
-          return next();
-        } else {
+      console.log(role.permissions);
+      if (role && role.permissions.some(perm => perm.permission_name === permission)) {
+        req.user_id = user.user_id;
+        return next();
+      } else {
           return res.status(403).json({ message: "Access denied" });
         }
       } catch (err) {

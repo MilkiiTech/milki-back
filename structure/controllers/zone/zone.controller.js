@@ -11,7 +11,7 @@ exports.create = async (req, res, next)=>{
     const {zone_name, city_name, contact_phone_number,email_address, address}=zoneDetail;
     try {
         let password = generatePassword();
-       
+       console.log(password, "password");
         
         const hashed_password=await bcrypt.hash(password.toString(), 10);
         const refinedUsers = users.map(user => {
