@@ -92,7 +92,7 @@ const { checkPermission } = require("../../../middlewares/accessControl");
 
 
 
-router.post("/create",checkPermission('can_create_woreda_admin'),createWoredaValidation, create);
+router.post("/create",checkPermission('can_create_woreda'),createWoredaValidation, create);
 /**
  * @swagger
  * /structure/woreda/get:
@@ -107,7 +107,7 @@ router.post("/create",checkPermission('can_create_woreda_admin'),createWoredaVal
  *             example:
  *               role: {}
  */
-router.get("/get",checkPermission('can_view_woreda_admin'), findAll);
+router.get("/get",checkPermission('can_view_woreda'), findAll);
 /**
  * @swagger
  * /structure/woreda/get/{woreda_id}:
@@ -131,7 +131,7 @@ router.get("/get",checkPermission('can_view_woreda_admin'), findAll);
  *             example:
  *               role: {}
  */
-router.get("/get/:woreda_id",checkPermission('can_view_woreda_admin'), findOne);
+router.get("/get/:woreda_id",checkPermission('can_view_woreda'), findOne);
 /**
  * @swagger
  * /structure/woreda/delete/{woreda_id}:
@@ -155,6 +155,6 @@ router.get("/get/:woreda_id",checkPermission('can_view_woreda_admin'), findOne);
  *             example:
  *               role: {}
  */
-router.delete("/delete/:woreda_id",checkPermission('can_delete_woreda_admin'), deleteOne);
+router.delete("/delete/:woreda_id",checkPermission('can_delete_woreda'), deleteOne);
 
 module.exports = router;

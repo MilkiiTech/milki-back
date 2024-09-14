@@ -31,16 +31,16 @@
     "can_delete_admin":"can_delete_admin"
   },
   {
-    "can_create_zone_admin":"can_create_zone_admin",
-    "can_view_zone_admin":"can_view_zone_admin",
-    "can_update_zone_admin":"can_update_zone_admin",
-    "can_delete_zone_admin":"can_delete_zone_admin"
+    "can_create_zone":"can_create_zone",
+    "can_view_zone":"can_view_zone",
+    "can_update_zone":"can_update_zone",
+    "can_delete_zone":"can_delete_zone"
   },
   {
-    "can_create_woreda_admin":"can_create_woreda_admin",
-    "can_view_woreda_admin":"can_view_woreda_admin",
-    "can_update_woreda_admin":"can_update_woreda_admin",
-    "can_delete_woreda_admin":"can_delete_woreda_admin"
+    "can_create_woreda":"can_create_woreda",
+    "can_view_woreda":"can_view_woreda",
+    "can_update_woreda":"can_update_woreda",
+    "can_delete_woreda":"can_delete_woreda"
   },
   {
     "can_create_sector":"can_create_sector",
@@ -59,9 +59,15 @@
     "can_view_weeklyTask":"can_view_weeklyTask",
     "can_update_weeklyTask":"can_update_weeklyTask",
     "can_delete_weeklyTask":"can_delete_weeklyTask"
+  },
+  {
+    "can_create_group":"can_create_group",
+    "can_view_group":"can_view_group",
+    "can_update_group":"can_update_group",
+    "can_delete_group":"can_delete_group"
   }
  ],
  "roles":[
-  "SUPER_ADMIN","MANAGER","LEADER","MEMBERS","ZONE_ADMIN","WOREDA_ADMIN","MANAGEMENT", "ZONE_HR", "ZONE_MANAGER","WOREDA_HR", "WOREDA_MANAGER"
+  "SUPER_ADMIN","MANAGER","LEADER","MEMBERS","ZONE_BULCHA","WOREDA_BULCHA","MANAGEMENT", "ZONE_HR", "ZONE_MANAGER","WOREDA_HR", "WOREDA_MANAGER"
  ]
 }

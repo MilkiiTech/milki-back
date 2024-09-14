@@ -80,7 +80,7 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *       400:
  *         description: Invalid request
  */
-router.post("/create",checkPermission('can_create_zone_admin'),createZoneAdminValidation, create);
+router.post("/create",checkPermission('can_create_zone'),createZoneAdminValidation, create);
 /**
  * @swagger
  * /structure/zone/get:
@@ -95,7 +95,7 @@ router.post("/create",checkPermission('can_create_zone_admin'),createZoneAdminVa
  *             example:
  *               role: {}
  */
-router.get("/get", checkPermission('can_view_zone_admin'), findAll);
+router.get("/get", checkPermission('can_view_zone'), findAll);
 /**
  * @swagger
  * /structure/zone/get/{zone_user_id}:
@@ -119,7 +119,7 @@ router.get("/get", checkPermission('can_view_zone_admin'), findAll);
  *             example:
  *               role: {}
  */
-router.get("/get/:zone_user_id", checkPermission('can_view_zone_admin'), findOne);
+router.get("/get/:zone_user_id", checkPermission('can_view_zone'), findOne);
 /**
  * @swagger
  * /structure/zone/{zone_user_id}:
@@ -143,6 +143,6 @@ router.get("/get/:zone_user_id", checkPermission('can_view_zone_admin'), findOne
  *             example:
  *               role: {}
  */
-router.delete("/:zone_user_id", checkPermission('can_delete_zone_admin'), deleteOne);
+router.delete("/:zone_user_id", checkPermission('can_delete_zone'), deleteOne);
 
 module.exports = router;

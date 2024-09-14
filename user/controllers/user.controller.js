@@ -202,7 +202,7 @@ exports.assignRolePermission = async (req, res,  next)=>{
             [Op.in]:permission_ids
         }}});
         
-        await role.setPermissions(permissions);
+        await role.addPermissions(permissions);
         return res.status(200).json(role);
     } catch (error) {
         console.log(error,"Error Assigning Permission to role")

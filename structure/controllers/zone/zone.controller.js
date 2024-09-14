@@ -59,7 +59,21 @@ exports.create = async (req, res, next)=>{
 // Find All Zones 
 exports.findAll = async (req, res, next)=>{
     try {
-        const zone = await Zone.findAll({where:{}, include:[
+        const currentUser = await User.findByPk(req.user_id, {
+            include:{
+            model:Sector,
+            as:"sector",
+            include:[
+                {
+                    model:Zone,
+                    
+                }
+            ],
+            
+          }});
+        const zone = await Zone.findAll({where:{
+            zone_user_id:currentUser?.sector?.Zone.zone_user_id
+        }, include:[
             // {
             //     model:User,
             //     as:"user",
