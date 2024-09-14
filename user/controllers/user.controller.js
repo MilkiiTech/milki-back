@@ -201,6 +201,9 @@ exports.assignRolePermission = async (req, res,  next)=>{
         const permissions = await Permission.findAll({where:{permission_id:{
             [Op.in]:permission_ids
         }}});
+        if (! role || ! permissions) {
+            throw new CustomError("Permission or Role does not found", 404)
+        }
         
         await role.addPermissions(permissions);
         return res.status(200).json(role);
