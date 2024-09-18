@@ -35,9 +35,9 @@ exports.create = async (req, res, next)=>{
                 createdById:req.user_id
             },{transaction:t});
             const new_sectors=users.map(sector => {
-                const { sector_name} = sector;
+                const { sector_name,sector_phone_number,sector_email_address,sector_address} = sector;
                 const { zone_user_id} = zone;
-                return { sector_name, sector_type:"Zone",zone_id:zone_user_id };
+                return { sector_name, sector_type:"Zone",phone_number:sector_phone_number, email_address:sector_email_address,address:sector_address,zone_id:zone_user_id };
             });
             const sector = await Sector.bulkCreate(new_sectors,{transaction:t})
             await sector[0].setCreatedBy(currentUser, {transaction:t});

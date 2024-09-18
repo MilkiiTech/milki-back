@@ -66,59 +66,94 @@ exports.create = async (req, res, next)=>{
     }
 }
 // Find All Zones 
-exports.findAll = async (req, res, next)=>{
-    try {
-        const sector = await Sector.findAll({include:[
-            {
-                model:Zone,
-                
-            },
-            {
-                model:Woreda
-            },
-            {
-                model:User,
-                as:"createdBy",
-                attributes:{
-                    exclude:[
-                        'password','createdAt','updatedAt'
-                    ]
-                }
-            },
-            {
-                model:User,
-                as:"updatedBy",
-                attributes:{
-                    exclude:[
-                        'password','createdAt','updatedAt'
-                    ]
-                }
-            },
-            {
-                model:User,
-                as:"users",
-                attributes:{
-                    exclude:[
-                        'password','createdAt','updatedAt'
-                    ]
-                }
-            },
-            {
-                model:Sector,
-                as:"ParentSector",
-                
-            },
-            {
-                model:Sector,
-                as:"SubSectors",
-                
-            }
-        ]});
-        return res.status(200).json(sector)
-    } catch (error) {
-        next(error);
+exports.findAll = async (req, res, next) => {
+  try {
+    console.log("Fetching user and related sectors...");
+
+    // Fetch user with sector, zone, and woreda associations
+    const user = await User.findByPk(req.user_id, {
+      include: {
+        model: Sector,
+        as: "sector",
+        include: [
+          {
+            model: Zone,
+          },
+          {
+            model: Woreda,
+          },
+        ],
+      },
+    });
+
+    if (!user || !user.sector) {
+      return res.status(404).json({ message: "User or sector not found" });
     }
-}
+
+    let sector;
+
+    // Helper function to build the common sector query
+    const getSectorData = (condition) => {
+      console.log(condition, "Condtions")
+      return Sector.findAll(
+        {
+          where:{
+            [Op.or]: [
+              condition.zoneCondition ? { zone_id: condition.zoneCondition.zone_user_id } : null,
+              condition.woredaCondition ? { woreda_id: condition.woredaCondition.woreda_id } : null
+            ].filter(Boolean)
+          },
+          include:[
+            {
+              model: User,
+              as: "createdBy",
+              attributes: { exclude: ['password', 'createdAt', 'updatedAt'] },
+            },
+            {
+              model: User,
+              as: "updatedBy",
+              attributes: { exclude: ['password', 'createdAt', 'updatedAt'] },
+            },
+            {
+              model: User,
+              as: "users",
+              attributes: { exclude: ['password', 'createdAt', 'updatedAt'] },
+            },
+            {
+              model: Sector,
+              as: "ParentSector",
+            },
+            {
+              model: Sector,
+              as: "SubSectors",
+            },
+          ]
+      });
+    };
+
+    if (user?.sector?.Zone) {
+      console.log("Fetching sectors for Zone...");
+      sector = await getSectorData({
+        zoneCondition: { zone_user_id: user?.sector?.Zone?.zone_user_id },
+      });
+    } else if (user?.sector?.Woreda) {
+      console.log("Fetching sectors for Woreda...");
+      sector = await getSectorData({
+        woredaCondition: { woreda_id: user?.sector?.Woreda?.woreda_id },
+      });
+    } else {
+      return res.status(400).json({ message: "User sector is neither Zone nor Woreda" });
+    }
+
+    console.log("Sectors fetched:", sector);
+    return res.status(200).json(sector);
+
+  } catch (error) {
+    console.error("Error fetching sectors:", error);
+    return next(error);
+  }
+};
+
 
 exports.findAllOwnSector = async (req, res, next)=>{
     try {

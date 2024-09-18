@@ -334,7 +334,6 @@ exports.removeUserFromSector = async (req, res,next)=>{
         next(error);
     }
 }
-
 // Get All Users
 exports.getAllUsers = async (req, res, next)=>{
     try {

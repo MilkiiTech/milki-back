@@ -11,6 +11,9 @@ const createZoneAdminValidation = (req, res, next) => {
       .required(),
     phone_number: Joi.string().pattern(phonePattern).required(),
     sector_name: Joi.string().required(), // Included here to validate inside users array
+    sector_phone_number:Joi.string(),
+    sector_email_address:Joi.string(),
+    sector_address:Joi.string(),
     role_id: Joi.number().required() // Included here to validate inside users array
   });
 

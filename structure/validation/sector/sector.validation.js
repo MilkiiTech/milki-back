@@ -9,16 +9,6 @@ const createSectorValidation = (req, res, next) => {
       email_address:Joi.string(),
       phone_number:Joi.string(),
       address:Joi.string(),
-      // zone_user_id: Joi.string().guid({ version: ['uuidv4'] }).when('sector_type', {
-      //   is: 'Zone',
-      //   then: Joi.required(),
-      //   otherwise: Joi.allow(null)
-      // }),
-      // woreda_id: Joi.string().guid({ version: ['uuidv4'] }).when('sector_type', {
-      //   is: 'Woreda',
-      //   then: Joi.required(),
-      //   otherwise: Joi.allow(null)
-      // }),
       parent_sector_id:Joi.string().guid({version:['uuidv4']})
       
     });

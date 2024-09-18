@@ -35,21 +35,11 @@ exports.create = async (req, res, next)=>{
               }});
             let zone_user_id;
             let zone=null;
-            let users_woreda=null;
             let zone_sector=false;
-            let woreda_sector=false;
             if (currentUser?.sector?.sector_type === 'Zone') {
                 zone_user_id = currentUser?.sector?.zone_id;
                 zone=currentUser?.sector?.Zone
                 zone_sector=true;
-                
-            }
-            if (currentUser?.sector?.sector_type === 'Woreda') {
-                zone_user_id = currentUser?.sector?.woreda_id;
-                users_woreda=currentUser?.sector?.Woreda;
-                zone = currentUser?.sector?.Woreda?.zone;
-                woreda_sector=true
-                
                 
             }
             const role1 = await Role.findByPk(users[0].role_id,{transaction:t});
@@ -64,30 +54,34 @@ exports.create = async (req, res, next)=>{
                 email_address,
                 
             },{transaction:t})
-            // await user.addZone(zone);
+            await woreda.setZone(zone, {transaction:t});
+            await woreda.setCreatedBy(currentUser, {transaction:t});
             const new_sectors=users.map(sector => {
                 const { sector_name,sector_phone_number,sector_email_address,sector_address} = sector;
-                return { sector_name, sector_type:"Woreda", phone_number:sector_phone_number, email_address:sector_email_address,address:sector_address, zone_id:zone_user_id };
+                return { sector_name, sector_type:"Woreda", phone_number:sector_phone_number, email_address:sector_email_address,address:sector_address, woreda_id:woreda.woreda_id };
             });
+            console.log("creating the following sectors", new_sectors)
             const sector = await Sector.bulkCreate(new_sectors,{transaction:t})
             await sector[0].setCreatedBy(currentUser, {transaction:t});
             await sector[1].setCreatedBy(currentUser, {transaction:t});
-            if (zone_sector === true) {
-                console.log("This is Zonne Sector....................................................");
-                await sector[0].setZone(zone, {transaction:t});
-                await sector[1].setZone(zone, {transaction:t});
-            }
-            if (woreda_sector === true) {
-                 // Add Sector to  
-                 console.log("This is Woreda Sector........................................");
-            await sector[0].setWoreda(users_woreda, {transaction:t});
-            await sector[1].setWoreda(users_woreda, {transaction:t});
-            }
+                   // Add Sector to  
+            console.log("This is Woreda Sector........................................");
+            await sector[0].setWoreda(woreda, {transaction:t});
+            await sector[1].setWoreda(woreda, {transaction:t});
+            // if (zone_sector === true) {
+            //     console.log("This is Zonne Sector....................................................");
+            //     await sector[0].setZone(zone, {transaction:t});
+            //     await sector[1].setZone(zone, {transaction:t});
+            // }
+            // if (woreda_sector === true) {
+            //      // Add Sector to  
+            //      console.log("This is Woreda Sector........................................");
+            // await sector[0].setWoreda(users_woreda, {transaction:t});
+            // await sector[1].setWoreda(users_woreda, {transaction:t});
+            // }
             // Add multiple users to the sector at once
             await sector[0].setUsers([user[0], user[1]], { transaction: t });
             await sector[1].setUsers([user[0], user[1]], { transaction: t });
-            await woreda.setZone(zone, {transaction:t});
-            await woreda.setCreatedBy(currentUser, {transaction:t});
             
         return res.status(201).json(user);
         })
