@@ -114,33 +114,10 @@ exports.findOne = async (req, res, next)=>{
 // Find All Zones 
 exports.findAll = async (req, res, next)=>{
     try {
-        const currentUser = await User.findByPk(req.user_id, {
-            include:{
-            model:Sector,
-            as:"sector",
-            include:[
-                {
-                    model:Zone,
-                    
-                },
-                {
-                    model:Woreda,
-                    include:{
-                        model:Zone,
-                        as:'zone'
-                    }
-                }
-            ],
-            
-          }});
-          console.log(currentUser.sector.Woreda, "Current Users Woreda");
-          console.log(currentUser.sector.Zone, "Current Users Sector");
-          let woreda;
-          if (currentUser?.sector?.Woreda?.woreda_id !=null) {
+        let woreda;
+        if (req.role.includes("SUPER_ADMIN")) {
             woreda = await Woreda.findAll({
                 where:{
-                    woreda_id:currentUser?.sector?.Woreda?.woreda_id
-
                 },
                 include:[
                 {   model:User,
@@ -153,24 +130,65 @@ exports.findAll = async (req, res, next)=>{
                     as:"zone"
                 }
             ]});
-          }
-          if (currentUser?.sector?.Zone?.zone_user_id) {
-            woreda = await Woreda.findAll({
+        }else{
+            const currentUser = await User.findByPk(req.user_id, {
+                include:{
+                model:Sector,
+                as:"sector",
                 include:[
-                {   model:User,
-                    as:"user",
-                    attributes:{
-                        exclude:['password','createdAt', 'updatedAt']
+                    {
+                        model:Zone,
+                        
+                    },
+                    {
+                        model:Woreda,
+                        include:{
+                            model:Zone,
+                            as:'zone'
+                        }
                     }
-                },{
-                    model:Zone,
-                    as:"zone",
+                ],
+                
+              }});
+              console.log(currentUser.sector.Woreda, "Current Users Woreda");
+              console.log(currentUser.sector.Zone, "Current Users Sector");
+              if (currentUser?.sector?.Woreda?.woreda_id !=null) {
+                woreda = await Woreda.findAll({
                     where:{
-                        zone_user_id:currentUser?.sector?.Zone?.zone_user_id
+                        woreda_id:currentUser?.sector?.Woreda?.woreda_id
+    
+                    },
+                    include:[
+                    {   model:User,
+                        as:"user",
+                        attributes:{
+                            exclude:['password','createdAt', 'updatedAt']
+                        }
+                    },{
+                        model:Zone,
+                        as:"zone"
                     }
-                }
-            ]});
-          }
+                ]});
+              }
+              if (currentUser?.sector?.Zone?.zone_user_id) {
+                woreda = await Woreda.findAll({
+                    include:[
+                    {   model:User,
+                        as:"user",
+                        attributes:{
+                            exclude:['password','createdAt', 'updatedAt']
+                        }
+                    },{
+                        model:Zone,
+                        as:"zone",
+                        where:{
+                            zone_user_id:currentUser?.sector?.Zone?.zone_user_id
+                        }
+                    }
+                ]});
+              }
+        }
+        
         return res.status(200).json(woreda)
     } catch (error) {
         next(error);

@@ -59,51 +59,84 @@ exports.create = async (req, res, next)=>{
 // Find All Zones 
 exports.findAll = async (req, res, next)=>{
     try {
-        const currentUser = await User.findByPk(req.user_id, {
-            include:{
-            model:Sector,
-            as:"sector",
-            include:[
-                {
-                    model:Zone,
+        if (req?.role.includes("SUPER_ADMIN")) {
+            const zone = await Zone.findAll({where:{
+            }, include:[
+                // {
+                //     model:User,
+                //     as:"user",
+                //     attributes:{
+                //         exclude:['password']
+                //     }
                     
-                }
-            ],
-            
-          }});
-        const zone = await Zone.findAll({where:{
-            zone_user_id:currentUser?.sector?.Zone.zone_user_id
-        }, include:[
-            // {
-            //     model:User,
-            //     as:"user",
-            //     attributes:{
-            //         exclude:['password']
-            //     }
-                
-                
-            // },
+                    
+                // },
+                {
+                    model:User,
+                    as:"createdBy",
+                    attributes:{
+                        exclude:['password']
+                    }
+                },
+                {
+                    model:User,
+                    as:"updatedBy",
+                    attributes:{
+                        exclude:['password']
+                    }
+                },
+    
             {
-                model:User,
-                as:"createdBy",
-                attributes:{
-                    exclude:['password']
-                }
-            },
+                model:Sector
+            }
+            ]});
+            return res.status(200).json(zone)
+        }else{
+            const currentUser = await User.findByPk(req.user_id, {
+                include:{
+                model:Sector,
+                as:"sector",
+                include:[
+                    {
+                        model:Zone,
+                        
+                    }
+                ],
+              }});
+            const zone = await Zone.findAll({where:{
+                zone_user_id:currentUser?.sector?.Zone.zone_user_id
+            }, include:[
+                // {
+                //     model:User,
+                //     as:"user",
+                //     attributes:{
+                //         exclude:['password']
+                //     }
+                    
+                    
+                // },
+                {
+                    model:User,
+                    as:"createdBy",
+                    attributes:{
+                        exclude:['password']
+                    }
+                },
+                {
+                    model:User,
+                    as:"updatedBy",
+                    attributes:{
+                        exclude:['password']
+                    }
+                },
+    
             {
-                model:User,
-                as:"updatedBy",
-                attributes:{
-                    exclude:['password']
-                }
-            },
+                model:Sector
+            }
+            ]});
+            return res.status(200).json(zone)
 
-        {
-            model:Sector
         }
-
-        ]});
-        return res.status(200).json(zone)
     } catch (error) {
         console.log(error, "Error");
         next(error);

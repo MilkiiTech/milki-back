@@ -85,7 +85,7 @@ exports.findAll = async (req, res, next) => {
     });
 
     if (!user || !user.sector) {
-      return res.status(404).json({ message: "User or sector not found" });
+      throw new CustomError("User or sector not found", 404)
     }
 
     let sector;
@@ -140,7 +140,7 @@ exports.findAll = async (req, res, next) => {
         woredaCondition: { woreda_id: user?.sector?.Woreda?.woreda_id },
       });
     } else {
-      return res.status(400).json({ message: "User sector is neither Zone nor Woreda" });
+      throw new CustomError("User sector is neither Zone nor Woreda", 400)
     }
 
     console.log("Sectors fetched:", sector);
