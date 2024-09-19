@@ -37,6 +37,12 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *                       type: string
  *                     sector_name:
  *                       type: string
+ *                     sector_phone_number:
+ *                       type: string
+ *                     sector_email_address:
+ *                       type: string
+ *                     sector_address:
+ *                       type: string
  *                     role_id:
  *                       type: integer
  *               zoneDetail:
@@ -54,22 +60,28 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *                     type: string
  *             example:
  *               users:
- *                 - username: "munir"
- *                   email: "moti@gmail.com"
+ *                 - username: "muhidin"
+ *                   email: "rumi@gmail.com"
  *                   phone_number: "+251985654323"
  *                   sector_name: "HR"
- *                   role_id: 6
- *                 - username: "faysal"
- *                   email: "etana@gmail.com"
+ *                   sector_phone_number: "+251927355418"
+ *                   sector_email_address: "email@gmail.com"
+ *                   sector_address: "Addis Abeba"
+ *                   role_id: 8
+ *                 - username: "muhidinm"
+ *                   email: "aziza@gmail.com"
  *                   phone_number: "+251987667324"
  *                   sector_name: "BULCHA"
- *                   role_id: 6
+ *                   sector_phone_number: "+251910079217"
+ *                   sector_email_address: "me@gmail.com"
+ *                   sector_address: "Adama"
+ *                   role_id: 5
  *               zoneDetail:
- *                 zone_name: "Arsi245"
- *                 city_name: "Metu"
+ *                 zone_name: "Arsi"
+ *                 city_name: "Asalla"
  *                 email_address: "amaedris1@gmail.com"
  *                 contact_phone_number: "+251987654325"
- *                 address: "Addis Abeba"
+ *                 address: "Asalla"
  *     responses:
  *       200:
  *         description: Successful response
@@ -80,6 +92,7 @@ const { checkPermission } = require("../../../middlewares/accessControl");
  *       400:
  *         description: Invalid request
  */
+
 router.post("/create",checkPermission('can_create_zone'),createZoneAdminValidation, create);
 /**
  * @swagger

@@ -57,15 +57,13 @@ exports.create = async (req, res, next)=>{
             await sector.setZone(zone);
             await sector.setWoreda(woreda);
             return res.status(201).json(sector);
-    
-       
         
     } catch (error) {
         console.log(error);
        next(error); 
     }
 }
-// Find All Zones 
+// Find All Sector Belonging To Woreda 
 exports.findAll = async (req, res, next) => {
   try {
     console.log("Fetching user and related sectors...");
