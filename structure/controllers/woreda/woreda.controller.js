@@ -115,7 +115,8 @@ exports.findOne = async (req, res, next)=>{
 exports.findAll = async (req, res, next)=>{
     try {
         let woreda;
-        if (req.role.includes("SUPER_ADMIN")) {
+        console.log(req.role, "Roles are fetching");
+        if (req?.role.includes("SUPER_ADMIN")) {
             woreda = await Woreda.findAll({
                 where:{
                 },
@@ -131,6 +132,7 @@ exports.findAll = async (req, res, next)=>{
                 }
             ]});
         }else{
+            console.log("Else is running")
             const currentUser = await User.findByPk(req.user_id, {
                 include:{
                 model:Sector,
@@ -191,6 +193,7 @@ exports.findAll = async (req, res, next)=>{
         
         return res.status(200).json(woreda)
     } catch (error) {
+        console.log(error, "Error Fetching");
         next(error);
     }
 }

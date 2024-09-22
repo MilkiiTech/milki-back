@@ -31,6 +31,7 @@ exports.checkPermission = (permission) => {
       console.log(role.permissions);
       if (role && role.permissions.some(perm => perm.permission_name === permission)) {
         req.user_id = user.user_id;
+        req.role=user.role;
         return next();
       } else {
           return res.status(403).json({ message: "Access denied" });
