@@ -2,7 +2,7 @@ const CustomError = require("../../error/customError");
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const config = require('../../config/config');
-const {Role, User, Sector, Group, Zone }=require("../models/association")
+const {Role, User, Sector, Group, Zone, Woreda }=require("../models/association")
 const Permission = require("../models/permission");
 const {generatePassword}= require("../../utils/utils")
 const {Op}=require("sequelize");
@@ -236,8 +236,6 @@ exports.createUser = async (req, res, next)=>{
     try {
         let transaction;
         const {employee_id, first_name, last_name, middle_name,nationality,marital_status,gender,date_of_birth,address, username, email, phone_number, sector_id, role_id}=req.body;
-        console.log(req.body)
-        console.log(req.files);
         let password = generatePassword().toString();
         const hashed_password=await bcrypt.hash(password, 10);
         transaction=sequelize.transaction();
@@ -246,7 +244,7 @@ exports.createUser = async (req, res, next)=>{
             const role = await Role.findByPk(role_id, {transaction:t});
             if (sector==null || role== null) {
                 t.rollback();
-                throw new CustomError(`Role or Sector  is Not Found With Id: ${zone_id}`, 404);
+                throw new CustomError(`Role or Sector  is Not Found With Id: ${role_id}`, 404);
             }
             const user = await User.create({
                 username,
@@ -337,9 +335,85 @@ exports.removeUserFromSector = async (req, res,next)=>{
 // Get All Users
 exports.getAllUsers = async (req, res, next)=>{
     try {
-        const user = await User.findAll({where:{}, attributes:{exclude:['password']}});
+        console.log(req?.role, "role");
+        let users;
+        if (req?.role.includes('SUPER_ADMIN')) {
+        users = await User.findAll({where:{}, attributes:{exclude:['password']}});   
+        }else{
+            let zone_user_id;
+            let woreda_id;
+            let sector_ids=[];
+            const currentUser = await User.findByPk(req.user_id, {
+                include:{
+                model:Sector,
+                as:"sector",
+                include:[
+                    {
+                        model:Zone,
+                        
+                    },
+                    {
+                        model:Woreda,
+                        include:{
+                            model:Zone,
+                            as:'zone'
+                        }
+                    }
+                ],
+                
+              }});
+              if (currentUser?.sector?.Zone) {
+                zone_user_id=currentUser?.sector?.Zone.zone_user_id;
+                let sectors= await Sector.findAll({
+                    where:{
+                        zone_id:zone_user_id
+                    },
+                    include:{
+                        model:Zone,
+                        where:{
+                            zone_user_id:zone_user_id
+                        }
+                    }
+                })
+                sectors.forEach(sector => {
+                    sector_ids.push(sector.sector_id);
+                });
+                users = await User.findAll(
+                    {where:{sector_id:{
+                        [Op.in]:sector_ids
+                    }}}
+                )
+                return res.status(200).json(user);
+              }
+              if (currentUser?.sector?.Woreda) {
+                woreda_id=currentUser?.sector?.Woreda?.woreda_id;
+                let sectors = await Sector.findAll({
+                    where:{
+                        woreda_id:woreda_id
+                    },
+                    include:{
+                        model:Woreda,
+                        where:{
+                          woreda_id:woreda_id  
+                        }
+                    }
+                })
+                sectors.forEach(sector => {
+                  sector_ids.push(sector?.sector_id)  
+                });
+                users = await User.findAll(
+                    {where:{sector_id:{
+                        [Op.in]:sector_ids
+                    }}}
+                )
+
+                return res.status(200).json(users);
+              }
+
+        }
         return res.status(200).json(user);
     } catch (error) {
+        console.log(error);
         next(error);
     }
 }
