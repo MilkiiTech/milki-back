@@ -59,6 +59,7 @@ exports.create = async (req, res, next)=>{
 // Find All Zones 
 exports.findAll = async (req, res, next)=>{
     try {
+        console.log(req.role)
         if (req?.role.includes("SUPER_ADMIN")) {
             const zone = await Zone.findAll({where:{
             }, include:[
