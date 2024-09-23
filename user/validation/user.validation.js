@@ -189,14 +189,9 @@ const createUserValidation = (req, res, next) => {
     phone_number: Joi.string().pattern(phonePattern).required(),
     sector_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
     role_id: Joi.number().positive().required(),
+    address:Joi.string()
     
-    // Address object validation
-    address: Joi.object({
-      street: Joi.string().optional(),
-      city: Joi.string().optional(),
-      zipCode: Joi.string().optional(),
-      state: Joi.string().optional(),
-    }).optional(),
+  
   });
 
   // Validate the request body against the schema

@@ -50,19 +50,10 @@ const User = sequelize.define("User", {
       allowNull: true,
     },
     address: {
-      type: DataTypes.JSONB, // or DataTypes.JSON
+      type: DataTypes.STRING, // or DataTypes.JSON
       allowNull: true,
-      validate: {
-        isAddress(value) {
-          if (value !== null && value !== undefined) { // Add this check
-            if (!value.street || !value.city || !value.state || !value.zipCode) {
-              throw new Error('Address must include street, city, state, and zip code.');
-            }
-          }
-        },
-      },
+      
     },
-    
     valid_identification:{
       type:DataTypes.STRING,
       allowNull:true

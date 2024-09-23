@@ -70,13 +70,7 @@ router.post("/signup",checkPermission('can_create_user'),registrationValidation,
  *                 type: string
  *               role_id:
  *                 type: integer
- *               address[street]:
- *                 type: string
- *               address[city]:
- *                 type: string
- *               address[zipCode]:
- *                 type: string
- *               address[state]:
+ *               address:
  *                 type: string
  *               valid_identification:
  *                 type: string
@@ -115,10 +109,7 @@ router.post("/signup",checkPermission('can_create_user'),registrationValidation,
  *               phone_number: "0987654321"
  *               sector_id: "bf2bda19-f0d9-4e90-b715-4f852365b2af"
  *               role_id: 11
- *               address[street]: "qwerty"
- *               address[city]: "Addis Abeba"
- *               address[zipCode]: "asfghhj"
- *               address[state]: "Ethiopia"
+ *               address: "Addis Abeba"
  *               valid_identification: "file"
  *               educational_document: "file"
  *               gurantee_document: "file"
