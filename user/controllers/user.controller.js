@@ -411,7 +411,7 @@ exports.getAllUsers = async (req, res, next)=>{
               }
 
         }
-        return res.status(200).json(user);
+        return res.status(200).json(users);
     } catch (error) {
         console.log(error);
         next(error);
