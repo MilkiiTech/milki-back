@@ -111,7 +111,7 @@ exports.findOne = async (req, res, next)=>{
         next(error);
     }
 }
-// Find All Zones 
+// Find All Woreda  
 exports.findAll = async (req, res, next)=>{
     try {
         let woreda;
@@ -174,19 +174,23 @@ exports.findAll = async (req, res, next)=>{
               }
               if (currentUser?.sector?.Zone?.zone_user_id) {
                 woreda = await Woreda.findAll({
+                    where:{
+                        zoneZoneUserId:currentUser?.sector?.Zone?.zone_user_id
+                    },
                     include:[
                     {   model:User,
                         as:"user",
                         attributes:{
                             exclude:['password','createdAt', 'updatedAt']
                         }
-                    },{
-                        model:Zone,
-                        as:"zone",
-                        where:{
-                            zone_user_id:currentUser?.sector?.Zone?.zone_user_id
-                        }
                     }
+                    // ,{
+                    //     model:Zone,
+                    //     as:"zone",
+                    //     where:{
+                    //         zone_user_id:currentUser?.sector?.Zone?.zone_user_id
+                    //     }
+                    // }
                 ]});
               }
         }
@@ -194,6 +198,79 @@ exports.findAll = async (req, res, next)=>{
         return res.status(200).json(woreda)
     } catch (error) {
         console.log(error, "Error Fetching");
+        next(error);
+    }
+}
+
+exports.findWoredaSectors=async(req, res, next)=>{
+    // Fetch user with sector, zone, and woreda associations
+    try {
+        console.log("Request zomes in")
+        const {woreda_id}=req.params
+        console.log(woreda_id, "Worda")
+        const sector = await Sector.findAll(
+            {where:{
+               woreda_id:woreda_id 
+            }},
+            {
+            // include: [
+            //   {
+            //     model: Zone,
+            //     required: false,
+            //     // where: {
+            //     //   userUserId: req.user_id
+            //     // }
+            //   },
+            //   {
+            //     model: Woreda,
+            //     required: false,
+            //     where: {
+            //       userUserId: req.user_id
+            //     }
+            //   },
+            //   {
+            //     model: User,
+            //     as: "createdBy",
+            //     attributes: {
+            //       exclude: ['password', 'createdAt', 'updatedAt']
+            //     }
+            //   },
+            //   {
+            //     model: User,
+            //     as: "updatedBy",
+            //     attributes: {
+            //       exclude: ['password', 'createdAt', 'updatedAt']
+            //     }
+            //   },
+            //   {
+            //     model: User,
+            //     as: "users",
+            //     attributes: {
+            //       exclude: ['password', 'createdAt', 'updatedAt']
+            //     }
+            //   },
+            //   {
+            //     model: Sector,
+            //     as: "ParentSector",
+            //   },
+            //   {
+            //     model: Sector,
+            //     as: "SubSectors",
+            //   }
+            // ],
+            // where: {
+            //   [Sequelize.Op.or]: [
+            //     { '$Zone.userUserId$': req.user_id },
+            //     { '$Woreda.userUserId$': req.user_id }
+            //   ]
+            // }
+          });
+          if (!sector) {
+            throw new CustomError(`Woreda Not Found With Id: ${woreda_id} Not Found`, 404)
+          }
+        return res.status(200).json(sector)
+    } catch (error) {
+        console.log(error, "Error")
         next(error);
     }
 }

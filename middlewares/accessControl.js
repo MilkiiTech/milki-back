@@ -28,7 +28,7 @@ exports.checkPermission = (permission) => {
             as: "permissions"
           }
         });
-      console.log(role.permissions);
+  
       if (role && role.permissions.some(perm => perm.permission_name === permission)) {
         req.user_id = user.user_id;
         req.role=user.role;

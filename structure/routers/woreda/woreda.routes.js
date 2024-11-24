@@ -4,7 +4,8 @@ const {
   create,
   findAll,
   findOne,
-  deleteOne
+  deleteOne,
+  findWoredaSectors
 } = require("../../controllers/woreda/woreda.controller");
 const {
 createWoredaValidation
@@ -108,6 +109,8 @@ router.post("/create",checkPermission('can_create_woreda'),createWoredaValidatio
  *               role: {}
  */
 router.get("/get",checkPermission('can_view_woreda'), findAll);
+router.get("/get/sector/:woreda_id",checkPermission('can_view_woreda'), findWoredaSectors);
+
 /**
  * @swagger
  * /structure/woreda/get/{woreda_id}:

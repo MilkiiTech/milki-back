@@ -343,6 +343,7 @@ exports.getAllUsers = async (req, res, next)=>{
             let zone_user_id;
             let woreda_id;
             let sector_ids=[];
+            let woreda_ids=[];
             const currentUser = await User.findByPk(req.user_id, {
                 include:{
                 model:Sector,
@@ -364,26 +365,23 @@ exports.getAllUsers = async (req, res, next)=>{
               }});
               if (currentUser?.sector?.Zone) {
                 zone_user_id=currentUser?.sector?.Zone.zone_user_id;
+                let woredas = await Woreda.findAll({where:{zoneZoneUserId:zone_user_id}});
+                woredas.forEach(woreda=>{woreda_ids.push(woreda.woreda_id)});
                 let sectors= await Sector.findAll({
                     where:{
-                        zone_id:zone_user_id
-                    },
-                    include:{
-                        model:Zone,
-                        where:{
-                            zone_user_id:zone_user_id
-                        }
+                        [Op.or]: [{ zone_id: zone_user_id }, { woreda_id: {[Op.in]:woreda_ids} }],
                     }
+                    
                 })
                 sectors.forEach(sector => {
                     sector_ids.push(sector.sector_id);
                 });
-                users = await User.findAll(
-                    {where:{sector_id:{
-                        [Op.in]:sector_ids
-                    }}}
+                console.log(sector_ids, "Sector Ids")
+                
+                users=await User.findAll(
+                    {where:{sector_id:{[Op.in]:sector_ids}},attributes:{exclude:['password']}}
                 )
-                return res.status(200).json(user);
+                return res.status(200).json(users);
               }
               if (currentUser?.sector?.Woreda) {
                 woreda_id=currentUser?.sector?.Woreda?.woreda_id;
@@ -401,10 +399,8 @@ exports.getAllUsers = async (req, res, next)=>{
                 sectors.forEach(sector => {
                   sector_ids.push(sector?.sector_id)  
                 });
-                users = await User.findAll(
-                    {where:{sector_id:{
-                        [Op.in]:sector_ids
-                    }}}
+                users=await User.findAll(
+                    {where:{sector_id:{[Op.in]:sector_ids}},attributes:{exclude:['password']}}
                 )
 
                 return res.status(200).json(users);
