@@ -19,7 +19,7 @@ const sequelize = new Sequelize({
       console.error("Error connecting");
     }
   }
-//   sequelize.sync({ force: true}).then(()=>{
+//   sequelize.sync({ alter: true}).then(()=>{
 //   console.log('Database synchronized successfully.');
 // }).catch((error)=>{
 //   console.error('Error synchronizing database:', error);

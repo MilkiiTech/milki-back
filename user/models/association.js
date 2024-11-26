@@ -8,6 +8,7 @@ const Group = require("../../structure/models/group")
 const Work=require("../../structure/models/work")
 const WeeklyTask = require("../../structure/models/weeklyTask");
 const SectorWork=require("../../structure/models/sectorWork");
+const TransferRequest = require("./userTransferRequest");
 // Define the association of Users to Roles
 Role.belongsToMany(User, { through: 'UsersRoles' });
 User.belongsToMany(Role, { through: 'UsersRoles' });
@@ -15,8 +16,6 @@ User.belongsToMany(Role, { through: 'UsersRoles' });
 // Define the association of Roles to Permissions
 Role.belongsToMany(Permission, { through: 'RolePermission' });
 Permission.belongsToMany(Role, { through: 'RolePermission' });
-
-// Define Association Of Zone to Users
 
 // Zone.hasMany(User, {as:"users"});
 User.belongsTo(Zone, {as:"zone"})
@@ -37,6 +36,34 @@ Woreda.hasMany(Sector, { foreignKey: 'woreda_id' });
 // Define Association Of Sector and Users this association defines which User works in which Sector
 Sector.hasMany(User, {foreignKey:'sector_id', as:"users"});
 User.belongsTo(Sector, {foreignKey:'sector_id', as:"sector"});
+// Define Association of transferRequest to User and Sector
+TransferRequest.belongsTo(User, {
+    foreignKey: 'user_id', 
+    as: "user",
+    through: 'UserTransferRequests'
+});
+TransferRequest.belongsTo(Sector, {
+    foreignKey: 'sector_id', 
+    as: "sector",
+    through: 'UserTransferRequests'
+});
+TransferRequest.belongsTo(User, {
+    foreignKey: 'requested_by', 
+    as: "requestedBy",
+    through: 'UserTransferRequests'
+});
+TransferRequest.belongsTo(User, {
+    foreignKey: 'approved_by', 
+    as: "approvedBy",
+    through: 'UserTransferRequests'
+});
+TransferRequest.belongsTo(User, {
+    foreignKey: 'rejected_by', 
+    as: "rejectedBy",
+    through: 'UserTransferRequests'
+});
+
+
 // Define Association of Sector to Woreda and Zone
 Sector.belongsTo(Zone, { foreignKey: 'zone_id' });
 Sector.belongsTo(Woreda, { foreignKey: 'woreda_id' });
@@ -96,7 +123,7 @@ WeeklyTask.afterUpdate(async (task, options) => {
   });
   
 
-module.exports = { User, Role, Permission, Zone, Woreda , Sector, Group, Work, WeeklyTask};
+module.exports = { User, Role, Permission, Zone, Woreda , Sector, Group, Work, WeeklyTask, TransferRequest};
 
 
 

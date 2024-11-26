@@ -2,7 +2,7 @@ const CustomError = require("../../error/customError");
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const config = require('../../config/config');
-const {Role, User, Sector, Group, Zone, Woreda }=require("../models/association")
+const {Role, User, Sector, Group, Zone, Woreda, TransferRequest}=require("../models/association")
 const Permission = require("../models/permission");
 const {generatePassword}= require("../../utils/utils")
 const {Op}=require("sequelize");
@@ -413,3 +413,93 @@ exports.getAllUsers = async (req, res, next)=>{
         next(error);
     }
 }
+exports.getUserById = async (req, res, next)=>{
+    try {
+        const {user_id}=req.params;
+        const user = await User.findByPk(user_id, {
+            attributes:{exclude:['password']},
+            include:[
+                {model:Role},
+                {
+                    model:Sector,
+                    as:"sector",
+                    include:[
+                        {
+                            model:Zone,
+                            
+                        },
+                        {
+                            model:Woreda,
+                            include:{
+                                model:Zone,
+                                as:'zone'
+                            }
+                        }
+                    ],
+                  }
+
+            ]
+           
+          
+
+        });
+        return res.status(200).json(user);
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+}
+exports.transferRequest = async (req, res, next)=>{
+    try {
+        const {user_id, sector_id}=req.body;
+        const user = await User.findByPk(user_id);
+        const sector = await Sector.findByPk(sector_id);
+        if (!user || !sector) {
+            throw new CustomError("User or Sector Not Found", 404);
+        }
+        const transferRequest = await TransferRequest.create({
+            user_id,
+            sector_id,
+            requested_by:req.user_id,
+            requested_at:new Date(),
+            status:"pending"
+        })
+        return res.status(201).json(transferRequest);
+    } catch (error) {
+        next(error);
+    }
+}
+exports.approveTransferRequest = async (req, res, next)=>{
+    try {
+        const {transfer_request_id}=req.params;
+        const transferRequest = await TransferRequest.findByPk(transfer_request_id);
+        if (!transferRequest) {
+            throw new CustomError("Transfer Request Not Found", 404);
+        }
+        transferRequest.status="approved";
+        transferRequest.approved_by=req.user_id;
+        transferRequest.approved_at=new Date();
+        await transferRequest.save();
+        return res.status(200).json(transferRequest);
+        
+    } catch (error) {
+        next(error);
+    }
+}
+exports.rejectTransferRequest = async (req, res, next)=>{
+    try {
+        const {transfer_request_id}=req.params;
+        const transferRequest = await TransferRequest.findByPk(transfer_request_id);
+        if (!transferRequest) {
+            throw new CustomError("Transfer Request Not Found", 404);
+        }   
+        transferRequest.status="rejected";
+        transferRequest.rejected_by=req.user_id;
+        transferRequest.rejected_at=new Date();
+        await transferRequest.save();
+        return res.status(200).json(transferRequest);
+    } catch (error) {
+        next(error);
+    }
+}
+

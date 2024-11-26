@@ -13,7 +13,11 @@ const {
   createUser,
   assignUserToSector,
   removeUserFromSector,
-  getAllUsers
+  getAllUsers,
+  getUserById,
+  transferRequest,
+  approveTransferRequest,
+  rejectTransferRequest
 } = require("../controllers/user.controller");
 const {
 registrationValidation,
@@ -23,7 +27,8 @@ updateGroupValidation,
 assignRoleToUserValidation,
 createUserValidation,
 assignUserToSectorValidation,
-removeUserFromSectorValidation
+removeUserFromSectorValidation,
+transferRequestValidation
 } = require("../validation/user.validation");
 const { checkPermission } = require("../../middlewares/accessControl");
 const upload = require("../../config/file-upload");
@@ -143,6 +148,7 @@ router.post("/create", checkPermission('can_create_user'),upload,createUserValid
  *               role: {}
  */
 router.get("/get",checkPermission('can_view_user'), getAllUsers)
+router.get("/get/:user_id", checkPermission('can_view_user'), getUserById)
 /**
  * @swagger
  * /user/assignUserToSector:
@@ -354,6 +360,9 @@ router.get("/permission", checkPermission('can_view_permission'),findAllPermissi
  *             example:
  *               role: {}
  */
-
+router.post("/transferRequest",checkPermission('can_update_user'),transferRequestValidation,transferRequest)
+router.put("/transferRequest/:transfer_request_id/approve",checkPermission('can_update_user'),approveTransferRequest)
+router.put("/transferRequest/:transfer_request_id/reject",checkPermission('can_update_user'),rejectTransferRequest)
 router.post("/assignRolePermission",checkPermission('can_view_permission'), assignRolePermission)
+// router.post("/changePassword",checkPermission('can_update_user'),changePasswordValidation,changePassword)
 module.exports = router;

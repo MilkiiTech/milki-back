@@ -248,6 +248,41 @@ const removeUserFromSectorValidation = (req, res, next) => {
 
   next();
 };
+const changePasswordValidation = (req, res, next) => {
+  const schema = Joi.object({
+    old_password:Joi.string().required(),
+    new_password:Joi.string().required()
+  })
+  const {error} = schema.validate(req.body);
+  if(error){
+    return res.status(400).json({error:error.details[0].message})
+  }
+  next();
+}
+const resetPasswordValidation = (req, res, next) => {
+  const schema = Joi.object({
+    email:Joi.string().email().required()
+  })
+  const {error} = schema.validate(req.body);
+  if(error){
+    return res.status(400).json({error:error.details[0].message})
+  }
+  next();
+}
+const transferRequestValidation = (req, res, next) => {
+  const schema = Joi.object({
+
+    user_id: Joi.string().guid({version:"uuidv4"}).required(),
+    sector_id:Joi.string().guid({version:"uuidv4"}).required()
+  })
+  const {error} = schema.validate(req.body);
+  if(error){
+    return res.status(400).json({error:error.details[0].message})
+  }
+  next();
+}
+
+
 module.exports = {
     registrationValidation, 
     loginValidation, 
@@ -256,5 +291,8 @@ module.exports = {
     assignRoleToUserValidation,
     createUserValidation,
     assignUserToSectorValidation,
-    removeUserFromSectorValidation
+    removeUserFromSectorValidation,
+    changePasswordValidation,
+    resetPasswordValidation,
+    transferRequestValidation
   };
