@@ -93,6 +93,31 @@ const User = sequelize.define("User", {
         model: Sector,
         key: 'sector_id',
       },
+    },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false
+    },
+    suspended_at: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    suspended_by: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'Users',
+        key: 'user_id'
+      }
+    },
+    password_reset_token: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    password_reset_expires: {
+      type: DataTypes.DATE,
+      allowNull: true
     }
   });
 

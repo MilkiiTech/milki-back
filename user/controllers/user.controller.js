@@ -7,6 +7,9 @@ const Permission = require("../models/permission");
 const {generatePassword}= require("../../utils/utils")
 const {Op}=require("sequelize");
 const sequelize = require("../../config/db");
+const crypto = require('crypto');
+const { sendEmail } = require('../../utils/email'); // You'll need to implement this
+
 // user signup controller 
 exports.registerUser = async (req, res, next)=>{
     const {username, email, phone_number, password}=req.body;
@@ -28,47 +31,63 @@ exports.registerUser = async (req, res, next)=>{
 
 }
 // user signin controller
-exports.login = async (req, res, next)=>{
-    const {username, password}=req.body;
+exports.login = async (req, res, next) => {
+    const { username, password } = req.body;
     try {
-        const user = await User.findOne({where:{
-            username
-        }, include:{
-            model:Role
-            
-        }})
-        if (! user) {
-           throw new CustomError("Invalid Crederntials", 401) 
+        const user = await User.findOne({
+            where: { username },
+            include: { model: Role }
+        });
+
+        if (!user) {
+            throw new CustomError("Invalid Credentials", 401);
         }
-       
-        bcrypt.compare(password, user.password, async (err, result) => {
-            if (err) {
-                throw new CustomError("Invalid Crederntials", 401) 
-            } else {
-              if (result === true) {
-                await user.update({ lastLogin: new Date() });
-                const token = jwt.sign(
-                  {
-                    user_id: user.user_id,
-                    username: user.username,
-                    role: user.Roles?.map((r)=>r.role_name)
-                    
-                  },
-                  config.get('jwt.secret'),
-                  { expiresIn: "24h" }
-                );
-                req.session.jwt = token;
-                return res.status(200).send({ token: token });
-              } else {
-                return res.status(401).json("Invalid credentials");
-              }
+
+        // Check if user is suspended
+        if (!user.is_active) {
+            throw new CustomError("Your account has been suspended. Please contact administrator.", 403);
+        }
+
+        // Use promisified bcrypt compare
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        
+        if (!isPasswordValid) {
+            throw new CustomError("Invalid Credentials", 401);
+        }
+
+        // Update last login
+        await user.update({ lastLogin: new Date() });
+
+        // Generate token
+        const token = jwt.sign(
+            {
+                user_id: user.user_id,
+                username: user.username,
+                role: user.Roles?.map((r) => r.role_name)
+            },
+            config.get('jwt.secret'),
+            { expiresIn: "24h" }
+        );
+
+        req.session.jwt = token;
+        return res.status(200).json({ 
+            status: 'success',
+            token,
+            user: {
+                user_id: user.user_id,
+                username: user.username,
+                roles: user.Roles?.map((r) => r.role_name)
             }
-          });
+        });
+
     } catch (error) {
-        next(error)
+        next(error);
     }
-   
-}
+};
+
+
+
+
 // create New Group/Team
 exports.createGroup = async (req, res, next)=>{
     const {group_name, leader_id, members_id}=req.body;
@@ -480,12 +499,433 @@ exports.approveTransferRequest = async (req, res, next)=>{
         transferRequest.approved_by=req.user_id;
         transferRequest.approved_at=new Date();
         await transferRequest.save();
+        const user = await User.findByPk(transferRequest.user_id);
+        const sector = await Sector.findByPk(transferRequest.sector_id);
+        if (!user || !sector) {
+            throw new CustomError("User or Sector Not Found", 404);
+        }
+        await user.setSector(sector);
+        await sector.addUser(user);
         return res.status(200).json(transferRequest);
         
     } catch (error) {
         next(error);
     }
 }
+exports.getTransferRequest = async (req, res, next) => {
+    try {
+        const currentUser = await User.findByPk(req.user_id, {
+            include: [{
+                model: Sector,
+                as: "sector",
+                include: [{
+                    model: Zone,
+                }, {
+                    model: Woreda,
+                    include: {
+                        model: Zone,
+                        as: 'zone'
+                    }
+                }]
+            }]
+        });
+
+        let transferRequests = [];
+        
+        // If user is in a Zone-level sector
+        if (currentUser?.sector?.Zone) {
+            const zone_id = currentUser.sector.Zone.zone_user_id;
+            
+            // Get all woredas under this zone
+            const woredas = await Woreda.findAll({
+                where: { zoneZoneUserId: zone_id }
+            });
+            const woreda_ids = woredas.map(woreda => woreda.woreda_id);
+
+            // Get all sectors under this zone (both direct and through woredas)
+            const sectors = await Sector.findAll({
+                where: {
+                    [Op.or]: [
+                        { zone_id: zone_id },
+                        { woreda_id: { [Op.in]: woreda_ids } }
+                    ]
+                }
+            });
+            const sector_ids = sectors.map(sector => sector.sector_id);
+
+            // Get transfer requests for all these sectors
+            transferRequests = await TransferRequest.findAll({
+                where: {
+                    sector_id: { [Op.in]: sector_ids },
+                    status: "pending"
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ['username', 'email', 'phone_number']
+                    },
+                    {
+                        model: Sector,
+                        as: "sector",
+                        include: [
+                            { model: Zone },
+                            { model: Woreda }
+                        ]
+                    },
+                    {
+                        model: User,
+                        as: "requestedBy",
+                        attributes: ['username', 'email']
+                    }
+                ]
+            });
+        }
+        // If user is in a Woreda-level sector
+        else if (currentUser?.sector?.Woreda) {
+            const woreda_id = currentUser.sector.Woreda.woreda_id;
+            
+            // Get all sectors under this woreda
+            const sectors = await Sector.findAll({
+                where: { woreda_id: woreda_id }
+            });
+            const sector_ids = sectors.map(sector => sector.sector_id);
+
+            // Get transfer requests for sectors under this woreda
+            transferRequests = await TransferRequest.findAll({
+                where: {
+                    sector_id: { [Op.in]: sector_ids },
+                    status: "pending"
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ['username', 'email', 'phone_number']
+                    },
+                    {
+                        model: Sector,
+                        as: "sector",
+                        include: [
+                            { model: Zone },
+                            { model: Woreda }
+                        ]
+                    },
+                    {
+                        model: User,
+                        as: "requestedBy",
+                        attributes: ['username', 'email']
+                    }
+                ]
+            });
+        }
+        // For regular users, only show their own transfer requests
+        else {
+            transferRequests = await TransferRequest.findAll({
+                where: {
+                    requested_by: currentUser.user_id
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ['username', 'email', 'phone_number']
+                    },
+                    {
+                        model: Sector,
+                        as: "sector",
+                        include: [
+                            { model: Zone },
+                            { model: Woreda }
+                        ]
+                    }
+                ]
+            });
+        }
+
+        return res.status(200).json(transferRequests);
+        
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.getApprovedTransferRequest = async (req, res, next)=>{
+    try {
+        const currentUser = await User.findByPk(req.user_id, {
+            include: [{
+                model: Sector,
+                as: "sector",
+                include: [{
+                    model: Zone,
+                }, {
+                    model: Woreda,
+                    include: {
+                        model: Zone,
+                        as: 'zone'
+                    }
+                }]
+            }]
+        });
+
+        let transferRequests = [];
+        
+        // If user is in a Zone-level sector
+        if (currentUser?.sector?.Zone) {
+            const zone_id = currentUser.sector.Zone.zone_user_id;
+            
+            // Get all woredas under this zone
+            const woredas = await Woreda.findAll({
+                where: { zoneZoneUserId: zone_id }
+            });
+            const woreda_ids = woredas.map(woreda => woreda.woreda_id);
+
+            // Get all sectors under this zone (both direct and through woredas)
+            const sectors = await Sector.findAll({
+                where: {
+                    [Op.or]: [
+                        { zone_id: zone_id },
+                        { woreda_id: { [Op.in]: woreda_ids } }
+                    ]
+                }
+            });
+            const sector_ids = sectors.map(sector => sector.sector_id);
+
+            // Get transfer requests for all these sectors
+            transferRequests = await TransferRequest.findAll({
+                where: {
+                    sector_id: { [Op.in]: sector_ids },
+                    status: "approved"
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ['username', 'email', 'phone_number']
+                    },
+                    {
+                        model: Sector,
+                        as: "sector",
+                        include: [
+                            { model: Zone },
+                            { model: Woreda }
+                        ]
+                    },
+                    {
+                        model: User,
+                        as: "requestedBy",
+                        attributes: ['username', 'email']
+                    }
+                ]
+            });
+        }
+        // If user is in a Woreda-level sector
+        else if (currentUser?.sector?.Woreda) {
+            const woreda_id = currentUser.sector.Woreda.woreda_id;
+            
+            // Get all sectors under this woreda
+            const sectors = await Sector.findAll({
+                where: { woreda_id: woreda_id }
+            });
+            const sector_ids = sectors.map(sector => sector.sector_id);
+
+            // Get transfer requests for sectors under this woreda
+            transferRequests = await TransferRequest.findAll({
+                where: {
+                    sector_id: { [Op.in]: sector_ids },
+                    status: "approved"
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ['username', 'email', 'phone_number']
+                    },
+                    {
+                        model: Sector,
+                        as: "sector",
+                        include: [
+                            { model: Zone },
+                            { model: Woreda }
+                        ]
+                    },
+                    {
+                        model: User,
+                        as: "requestedBy",
+                        attributes: ['username', 'email']
+                    }
+                ]
+            });
+        }
+        // For regular users, only show their own transfer requests
+        else {
+            transferRequests = await TransferRequest.findAll({
+                where: {
+                    requested_by: currentUser.user_id
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ['username', 'email', 'phone_number']
+                    },
+                    {
+                        model: Sector,
+                        as: "sector",
+                        include: [
+                            { model: Zone },
+                            { model: Woreda }
+                        ]
+                    }
+                ]
+            });
+        }
+
+        return res.status(200).json(transferRequests);
+        
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.getRejectedTransferRequest = async (req, res, next)=>{
+    try {
+        const currentUser = await User.findByPk(req.user_id, {
+            include: [{
+                model: Sector,
+                as: "sector",
+                include: [{
+                    model: Zone,
+                }, {
+                    model: Woreda,
+                    include: {
+                        model: Zone,
+                        as: 'zone'
+                    }
+                }]
+            }]
+        });
+
+        let transferRequests = [];
+        
+        // If user is in a Zone-level sector
+        if (currentUser?.sector?.Zone) {
+            const zone_id = currentUser.sector.Zone.zone_user_id;
+            
+            // Get all woredas under this zone
+            const woredas = await Woreda.findAll({
+                where: { zoneZoneUserId: zone_id }
+            });
+            const woreda_ids = woredas.map(woreda => woreda.woreda_id);
+
+            // Get all sectors under this zone (both direct and through woredas)
+            const sectors = await Sector.findAll({
+                where: {
+                    [Op.or]: [
+                        { zone_id: zone_id },
+                        { woreda_id: { [Op.in]: woreda_ids } }
+                    ]
+                }
+            });
+            const sector_ids = sectors.map(sector => sector.sector_id);
+
+            // Get transfer requests for all these sectors
+            transferRequests = await TransferRequest.findAll({
+                where: {
+                    sector_id: { [Op.in]: sector_ids },
+                    status: "rejected"
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ['username', 'email', 'phone_number']
+                    },
+                    {
+                        model: Sector,
+                        as: "sector",
+                        include: [
+                            { model: Zone },
+                            { model: Woreda }
+                        ]
+                    },
+                    {
+                        model: User,
+                        as: "requestedBy",
+                        attributes: ['username', 'email']
+                    }
+                ]
+            });
+        }
+        // If user is in a Woreda-level sector
+        else if (currentUser?.sector?.Woreda) {
+            const woreda_id = currentUser.sector.Woreda.woreda_id;
+            
+            // Get all sectors under this woreda
+            const sectors = await Sector.findAll({
+                where: { woreda_id: woreda_id }
+            });
+            const sector_ids = sectors.map(sector => sector.sector_id);
+
+            // Get transfer requests for sectors under this woreda
+            transferRequests = await TransferRequest.findAll({
+                where: {
+                    sector_id: { [Op.in]: sector_ids },
+                    status: "rejected"
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ['username', 'email', 'phone_number']
+                    },
+                    {
+                        model: Sector,
+                        as: "sector",
+                        include: [
+                            { model: Zone },
+                            { model: Woreda }
+                        ]
+                    },
+                    {
+                        model: User,
+                        as: "requestedBy",
+                        attributes: ['username', 'email']
+                    }
+                ]
+            });
+        }
+        // For regular users, only show their own transfer requests
+        else {
+            transferRequests = await TransferRequest.findAll({
+                where: {
+                    requested_by: currentUser.user_id
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ['username', 'email', 'phone_number']
+                    },
+                    {
+                        model: Sector,
+                        as: "sector",
+                        include: [
+                            { model: Zone },
+                            { model: Woreda }
+                        ]
+                    }
+                ]
+            });
+        }
+
+        return res.status(200).json(transferRequests);
+        
+    } catch (error) {
+        next(error);
+    }
+}
+
 exports.rejectTransferRequest = async (req, res, next)=>{
     try {
         const {transfer_request_id}=req.params;
@@ -502,4 +942,171 @@ exports.rejectTransferRequest = async (req, res, next)=>{
         next(error);
     }
 }
+
+// Suspend User
+exports.suspendUser = async (req, res, next) => {
+    try {
+        const { user_id } = req.params;
+        const user = await User.findByPk(user_id);
+        
+        if (!user) {
+            throw new CustomError("User not found", 404);
+        }
+
+        // Check if user is already suspended
+        if (!user.is_active) {
+            throw new CustomError("User is already suspended", 400);
+        }
+
+        user.is_active = false;
+        user.suspended_at = new Date();
+        user.suspended_by = req.user_id;
+        await user.save();
+
+        return res.status(200).json({
+            message: "User suspended successfully",
+            user: {
+                user_id: user.user_id,
+                username: user.username,
+                suspended_at: user.suspended_at
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Activate User
+exports.activateUser = async (req, res, next) => {
+    try {
+        const { user_id } = req.params;
+        const user = await User.findByPk(user_id);
+        
+        if (!user) {
+            throw new CustomError("User not found", 404);
+        }
+
+        // Check if user is already active
+        if (user.is_active) {
+            throw new CustomError("User is already active", 400);
+        }
+
+        user.is_active = true;
+        user.suspended_at = null;
+        user.suspended_by = null;
+        await user.save();
+
+        return res.status(200).json({
+            message: "User activated successfully",
+            user: {
+                user_id: user.user_id,
+                username: user.username
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Request Password Reset
+exports.requestPasswordReset = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ where: { email } });
+
+        if (!user) {
+            throw new CustomError("No user found with this email address", 404);
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(resetToken)
+            .digest('hex');
+
+        // Save token to user
+        user.password_reset_token = hashedToken;
+        user.password_reset_expires = new Date(Date.now() + 30 * 60 * 1000); // Token expires in 30 minutes
+        await user.save();
+
+        // Send email with reset link
+        const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/reset-password/${resetToken}`;
+        const message = `Forgot your password? Submit a PATCH request with your new password to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
+
+        try {
+            await sendEmail({
+                email: user.email,
+                subject: 'Your password reset token (valid for 30 min)',
+                message
+            });
+
+            res.status(200).json({
+                status: 'success',
+                message: 'Token sent to email!'
+            });
+        } catch (err) {
+            user.password_reset_token = null;
+            user.password_reset_expires = null;
+            await user.save();
+
+            throw new CustomError('There was an error sending the email. Try again later!', 500);
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Reset Password
+exports.resetPassword = async (req, res, next) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        // Hash the token to compare with stored hash
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
+
+        const user = await User.findOne({
+            where: {
+                password_reset_token: hashedToken,
+                password_reset_expires: {
+                    [Op.gt]: new Date()
+                }
+            }
+        });
+
+        if (!user) {
+            throw new CustomError('Token is invalid or has expired', 400);
+        }
+
+        // Update password
+        const hashed_password = await bcrypt.hash(password, 10);
+        user.password = hashed_password;
+        user.password_reset_token = null;
+        user.password_reset_expires = null;
+        await user.save();
+
+        // Generate new JWT token
+        const newToken = jwt.sign(
+            {
+                user_id: user.user_id,
+                username: user.username,
+                role: user.Roles?.map((r) => r.role_name)
+            },
+            config.get('jwt.secret'),
+            { expiresIn: "24h" }
+        );
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Password reset successfully',
+            token: newToken
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 

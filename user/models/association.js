@@ -47,11 +47,13 @@ TransferRequest.belongsTo(Sector, {
     as: "sector",
     through: 'UserTransferRequests'
 });
+
 TransferRequest.belongsTo(User, {
     foreignKey: 'requested_by', 
     as: "requestedBy",
     through: 'UserTransferRequests'
 });
+
 TransferRequest.belongsTo(User, {
     foreignKey: 'approved_by', 
     as: "approvedBy",
