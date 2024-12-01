@@ -65,7 +65,11 @@
     "can_view_group":"can_view_group",
     "can_update_group":"can_update_group",
     "can_delete_group":"can_delete_group"
+  },
+  {
+    "can_view_organization":"can_view_organization"
   }
+
  ],
  "roles":[
   "SUPER_ADMIN","MANAGER","LEADER","MEMBERS","ZONE_BULCHA","WOREDA_BULCHA","MANAGEMENT", "ZONE_HR", "ZONE_MANAGER","WOREDA_HR", "WOREDA_MANAGER"
