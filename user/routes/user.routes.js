@@ -375,7 +375,6 @@ router.get("/transferRequest/rejected",checkPermission('can_view_user'),getRejec
 router.put("/transferRequest/:transfer_request_id/approve",checkPermission('can_update_user'),approveTransferRequest)
 router.put("/transferRequest/:transfer_request_id/reject",checkPermission('can_update_user'),rejectTransferRequest)
 router.post("/assignRolePermission",checkPermission('can_view_permission'), assignRolePermission)
-
 router.patch("/suspend/:user_id",checkPermission('can_update_user'),suspendUser)
 router.patch("/activate/:user_id",checkPermission('can_update_user'),activateUser)
 router.post("/requestPasswordReset",requestPasswordReset)

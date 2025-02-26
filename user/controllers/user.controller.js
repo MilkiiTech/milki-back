@@ -254,8 +254,12 @@ exports.assignRoleToUser = async (req, res,  next)=>{
 exports.createUser = async (req, res, next)=>{
     try {
         let transaction;
-        const {employee_id, first_name, last_name, middle_name,nationality,marital_status,gender,date_of_birth,address, username, email, phone_number, sector_id, role_id}=req.body;
+        const {employee_id, first_name, last_name, middle_name,nationality,marital_status,gender,date_of_birth,address,city,area,houseNo, email, phone_number, sector_id, role_id}=req.body;
         let password = generatePassword().toString();
+
+        let modifiedAddress = address.join(", ");  // This will create: "Ethiopia, Oromia Region"
+        console.log(modifiedAddress, "newAddress")
+        let newAddress = modifiedAddress+", "+city+", "+area+", "+houseNo;
         const hashed_password=await bcrypt.hash(password, 10);
         transaction=sequelize.transaction();
         const result = await sequelize.transaction(async(t)=>{
@@ -266,7 +270,7 @@ exports.createUser = async (req, res, next)=>{
                 throw new CustomError(`Role or Sector  is Not Found With Id: ${role_id}`, 404);
             }
             const user = await User.create({
-                username,
+                username:phone_number,
                 email,
                 password:hashed_password,
                 phone_number,
@@ -278,7 +282,7 @@ exports.createUser = async (req, res, next)=>{
                 marital_status,
                 gender,
                 date_of_birth,
-                address,
+                address: newAddress,
                 valid_identification: req.files['valid_identification'] ? req.files['valid_identification'][0].filename : null,
                 gurantee_document: req.files['gurantee_document'] ? req.files['gurantee_document'][0].filename : null,
                 educational_document: req.files['educational_document'] ? req.files['educational_document'][0].filename : null

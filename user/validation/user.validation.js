@@ -182,16 +182,16 @@ const createUserValidation = (req, res, next) => {
     marital_status: Joi.string().optional(),
     gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER').required(),
     date_of_birth: Joi.date().optional(),
-    username: Joi.string().required(),
     email: Joi.string()
       .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
       .required(),
     phone_number: Joi.string().pattern(phonePattern).required(),
     sector_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
     role_id: Joi.number().positive().required(),
-    address:Joi.string()
-    
-  
+    address:Joi.array(),
+    city:Joi.string(),
+    area:Joi.string(),
+    houseNo:Joi.string()
   });
 
   // Validate the request body against the schema
