@@ -21,10 +21,12 @@ const {
   rejectTransferRequest,
   getApprovedTransferRequest,
   getRejectedTransferRequest,
+  getPendingTransferRequest,
   activateUser,
   suspendUser,
   requestPasswordReset,
-  resetPassword
+  resetPassword,
+  acceptTransferRequest
 
 } = require("../controllers/user.controller");
 const {
@@ -36,7 +38,8 @@ assignRoleToUserValidation,
 createUserValidation,
 assignUserToSectorValidation,
 removeUserFromSectorValidation,
-transferRequestValidation
+transferRequestValidation,
+acceptTransferRequestValidation
 } = require("../validation/user.validation");
 const { checkPermission } = require("../../middlewares/accessControl");
 const upload = require("../../config/file-upload");
@@ -369,7 +372,9 @@ router.get("/permission", checkPermission('can_view_permission'),findAllPermissi
  *               role: {}
  */
 router.post("/transferRequest",checkPermission('can_update_user'),transferRequestValidation,transferRequest)
-router.get("/transferRequest/pending",checkPermission('can_view_user'),getTransferRequest)
+router.post("/accept-transfer-request", checkPermission('can_update_user'),acceptTransferRequestValidation,acceptTransferRequest)
+router.post("/reject-transfer-request", checkPermission('can_update_user'),acceptTransferRequestValidation,rejectTransferRequest)
+router.get("/transferRequest/pending",checkPermission('can_view_user'),getPendingTransferRequest)
 router.get("/transferRequest/approved",checkPermission('can_view_user'),getApprovedTransferRequest)
 router.get("/transferRequest/rejected",checkPermission('can_view_user'),getRejectedTransferRequest)
 router.put("/transferRequest/:transfer_request_id/approve",checkPermission('can_update_user'),approveTransferRequest)

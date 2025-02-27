@@ -215,70 +215,141 @@ exports.findAllOwnSector = async (req, res, next)=>{
     }
 }
 // Find One
-exports.findOne = async (req, res, next)=>{
-    try {
-        const {sector_id}=req.params
-        const sector = await Sector.findByPk(sector_id,{
-            include: [
+// exports.findOne = async (req, res, next)=>{
+//     try {
+//         const {sector_id}=req.params
+//         const sector = await Sector.findByPk(sector_id,{
+//             include: [
+//               {
+//                 model: Zone,
+//                 required: false,
+//                 // where: {
+//                 //   userUserId: req.user_id
+//                 // }
+//               },
+//               {
+//                 model: Woreda,
+//                 required: false,
+//                 // where: {
+//                 //   userUserId: req.user_id
+//                 // }
+//               },
+//               {
+//                 model: User,
+//                 as: "createdBy",
+//                 attributes: {
+//                   exclude: ['password', 'createdAt', 'updatedAt']
+//                 }
+//               },
+//               {
+//                 model: User,
+//                 as: "updatedBy",
+//                 attributes: {
+//                   exclude: ['password', 'createdAt', 'updatedAt']
+//                 }
+//               },
+//               {
+//                 model: User,
+//                 as: "users",
+//                 attributes: {
+//                   exclude: ['password', 'createdAt', 'updatedAt']
+//                 }
+//               },
+//               {
+//                 model: Sector,
+//                 as: "ParentSector",
+//               },
+//               {
+//                 model: Sector,
+//                 as: "SubSectors",
+//               }
+//             ],
+//             where: {
+//               [Sequelize.Op.or]: [
+//                 { '$Zone.userUserId$': req.user_id },
+//                 { '$Woreda.userUserId$': req.user_id }
+//               ]
+//             }
+//           });
+//           if (!sector) {
+//             throw new CustomError(`Sector Not Found With Id: ${sector_id} Not Found`, 404)
+//           }
+//         return res.status(200).json(sector)
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+exports.findOne = async (req, res, next) => {
+  try {
+      const { sector_id } = req.params;
+      const sector = await Sector.findByPk(sector_id, {
+          include: [
               {
-                model: Zone,
-                required: false,
-                // where: {
-                //   userUserId: req.user_id
-                // }
+                  model: Zone,
+                  required: false,
               },
               {
-                model: Woreda,
-                required: false,
-                where: {
-                  userUserId: req.user_id
-                }
+                  model: Woreda,
+                  required: false,
               },
               {
-                model: User,
-                as: "createdBy",
-                attributes: {
-                  exclude: ['password', 'createdAt', 'updatedAt']
-                }
+                  model: User,
+                  as: "users",
+                  attributes: {
+                      exclude: ['password', 'createdAt', 'updatedAt']
+                  }
               },
               {
-                model: User,
-                as: "updatedBy",
-                attributes: {
-                  exclude: ['password', 'createdAt', 'updatedAt']
-                }
+                  model: User,
+                  as: "createdBy",
+                  attributes: {
+                      exclude: ['password', 'createdAt', 'updatedAt']
+                  }
               },
               {
-                model: User,
-                as: "users",
-                attributes: {
-                  exclude: ['password', 'createdAt', 'updatedAt']
-                }
+                  model: User,
+                  as: "updatedBy",
+                  attributes: {
+                      exclude: ['password', 'createdAt', 'updatedAt']
+                  }
               },
               {
-                model: Sector,
-                as: "ParentSector",
+                  model: Sector,
+                  as: "ParentSector",
               },
               {
-                model: Sector,
-                as: "SubSectors",
+                  model: Sector,
+                  as: "SubSectors",
               }
-            ],
-            where: {
-              [Sequelize.Op.or]: [
-                { '$Zone.userUserId$': req.user_id },
-                { '$Woreda.userUserId$': req.user_id }
-              ]
-            }
-          });
-          if (!sector) {
-            throw new CustomError(`Sector Not Found With Id: ${sector_id} Not Found`, 404)
+          ]
+      });
+
+      if (!sector) {
+          throw new CustomError(`Sector Not Found With Id: ${sector_id}`, 404);
+      }
+
+      // Check if the user is assigned to this sector or any of its parent sectors
+      const isUserInSector = sector.users.some(user => user.user_id === req.user_id);
+      
+      if (!isUserInSector) {
+          // If not directly in the sector, check parent sector
+          let parentSector = sector.ParentSector;
+          while (parentSector && !isUserInSector) {
+              const isUserInParentSector = parentSector.users.some(user => user.user_id === req.user_id);
+              if (isUserInParentSector) {
+                  return res.status(200).json(sector);
+              }
+              parentSector = parentSector.ParentSector;
           }
-        return res.status(200).json(sector)
-    } catch (error) {
-        next(error);
-    }
-}
+          // If user is not found in sector or any parent sectors, return null
+          return res.status(200).json({"message":"You are not authorized to access this sector"});
+      }
+
+      return res.status(200).json(sector);
+  } catch (error) {
+      next(error);
+  }
+};
 // update zone 
 exports.update = async (req, res,next)=>{
     const {sector_name, sector_type}=req.body

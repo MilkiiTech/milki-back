@@ -271,9 +271,28 @@ const resetPasswordValidation = (req, res, next) => {
 }
 const transferRequestValidation = (req, res, next) => {
   const schema = Joi.object({
-
     user_id: Joi.string().guid({version:"uuidv4"}).required(),
-    sector_id:Joi.string().guid({version:"uuidv4"}).required()
+    target_zone_id:Joi.string().guid({version:"uuidv4"}).required(),  })
+  const {error} = schema.validate(req.body);
+  if(error){
+    return res.status(400).json({error:error.details[0].message})
+  }
+  next();
+}
+
+const acceptTransferRequestValidation = (req, res, next) => {
+  const schema = Joi.object({
+    transfer_request_id: Joi.string().guid({version:"uuidv4"}).required(),
+    targetSectorId:Joi.string().guid({version:"uuidv4"}).required(),  })
+  const {error} = schema.validate(req.body);
+  if(error){
+    return res.status(400).json({error:error.details[0].message})
+  }
+  next();
+}
+const rejectTransferRequestValidation = (req, res, next) => {
+  const schema = Joi.object({
+    transfer_request_id: Joi.string().guid({version:"uuidv4"}).required(),
   })
   const {error} = schema.validate(req.body);
   if(error){
@@ -294,5 +313,7 @@ module.exports = {
     removeUserFromSectorValidation,
     changePasswordValidation,
     resetPasswordValidation,
-    transferRequestValidation
+    transferRequestValidation,
+    acceptTransferRequestValidation,
+    rejectTransferRequestValidation
   };

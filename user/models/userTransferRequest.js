@@ -7,6 +7,22 @@ const transferRequest = sequelize.define("UserTransferRequest", {
       primaryKey: true,
       autoIncrement: true,
     },
+    user_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    current_zone_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+    target_zone_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+    target_sector_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.ENUM('pending','approved','rejected'),
       allowNull: false,

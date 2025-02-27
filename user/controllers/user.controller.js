@@ -472,22 +472,108 @@ exports.getUserById = async (req, res, next)=>{
         next(error);
     }
 }
+// exports.transferRequest = async (req, res, next)=>{
+//     try {
+//         const {user_id, sector_id}=req.body;
+//         const user = await User.findByPk(user_id);
+//         const sector = await Sector.findByPk(sector_id);
+//         if (!user || !sector) {
+//             throw new CustomError("User or Sector Not Found", 404);
+//         }
+//         const transferRequest = await TransferRequest.create({
+//             user_id,
+//             sector_id,
+//             requested_by:req.user_id,
+//             requested_at:new Date(),
+//             status:"pending"
+//         })
+//         return res.status(201).json(transferRequest);
+//     } catch (error) {
+//         next(error);
+//     }
+// }
 exports.transferRequest = async (req, res, next)=>{
     try {
-        const {user_id, sector_id}=req.body;
-        const user = await User.findByPk(user_id);
-        const sector = await Sector.findByPk(sector_id);
-        if (!user || !sector) {
-            throw new CustomError("User or Sector Not Found", 404);
+        const {user_id, target_zone_id}=req.body;
+        const user = await User.findByPk(user_id,{
+            include:{
+            model:Sector,
+            as:"sector"
         }
+        });
+        console.log(user, "user")
+        const zone = await Zone.findByPk(target_zone_id);
+        if (!user) {
+            throw new CustomError("User or Zone Not Found", 404);
+        }
+        if (!zone) {
+            throw new CustomError("Target Zone Not Found", 404);
+        }
+        console.log(user, "user sector")
         const transferRequest = await TransferRequest.create({
-            user_id,
-            sector_id,
+            user_id:user.user_id,
+            current_zone_id:user.sector.zone_id,
+            target_zone_id,
             requested_by:req.user_id,
             requested_at:new Date(),
             status:"pending"
-        })
-        return res.status(201).json(transferRequest);
+        });
+        return res.status(201).json({message:"Transfer Request Created",transferRequest});
+    } catch (error) {
+        console.error('Error creating transfer request:', error);
+        next(error);
+    }
+}
+exports.acceptTransferRequest= async(req,res,next)=>{
+    try {
+        const {transfer_request_id, targetSectorId }=req.params;
+        const transferRequest = await TransferRequest.findByPk(transfer_request_id);
+        if (!transferRequest || transferRequest.status !== "pending") {
+            throw new CustomError("Transfer Request Not Found or Already Approved", 404);
+        }
+        const targetSector = await Sector.findByPk(targetSectorId);
+        if (!targetSector || targetSector.woreda.zone_id.toString() !== transferRequest.target_zone_id.toString()) {
+            return res.status(400).json({ message: 'Target sector does not belong to the target zone' });
+        }
+       // Update transfer request
+        transferRequest.target_sector_id = targetSectorId;
+        transferRequest.status = 'accepted';
+        transferRequest.updated_at = new Date();
+        await transferRequest.save();
+
+        // Update user's sector
+        const user = await User.findById(transferRequest.user_id);
+        user.sector_id = targetSectorId;
+        await user.save();
+
+           // Log the transfer
+           await TransferLog.create({
+            user_id: transferRequest.user_id,
+            old_sector_id: user.sector_id,
+            new_sector_id: targetSectorId,
+            transfer_request_id: transfer_request_id,
+            timestamp: new Date(),
+        });
+
+        await transferRequest.save();
+        return res.status(200).json({ message: 'Transfer request accepted and user assigned to sector', transferRequest });
+    } catch (error) {
+        console.error('Error accepting transfer request:', error);
+        next(error);
+    }
+}
+exports.rejectTransferRequest = async(req,res,next)=>{
+    try {
+        const {transfer_request_id}=req.params;
+        const transferRequest = await TransferRequest.findByPk(transfer_request_id);
+        if (!transferRequest || transferRequest.status !== "pending") {
+            throw new CustomError("Transfer Request Not Found or Already Approved", 404);
+        }
+        transferRequest.status="rejected";
+        transferRequest.rejected_by=req.user_id;
+        transferRequest.rejected_at=new Date();
+        await transferRequest.save();
+        return res.status(200).json({message:"Transfer Request Rejected",transferRequest});
     } catch (error) {
         next(error);
     }
@@ -646,306 +732,462 @@ exports.getTransferRequest = async (req, res, next) => {
                 ]
             });
         }
-
         return res.status(200).json(transferRequests);
         
     } catch (error) {
         next(error);
     }
 }
-
+exports.getPendingTransferRequest = async (req, res, next)=>{
+    try {
+        const { page = 1, limit = 10 } = req.query;
+        const offset = (page - 1) * limit;
+        const currentUser = await User.findByPk(req.user_id, {
+            include: [{
+                model: Sector,
+                as: "sector",
+            }]
+        });
+        let transferRequests = [];        // Build query options
+        if(currentUser?.sector?.sector_type=="Zone"){
+            const zone_id = currentUser?.sector?.zone_id;
+            const queryOptions = {
+                where: { 
+                    target_zone_id: zone_id,
+                    status:"pending"
+                 },
+                // include: [
+                //     { model: User, attributes: ['id', 'name', 'email'] },
+                //     { model: Zone, as: 'CurrentZone', attributes: ['id', 'name'] },
+                //     { model: Zone, as: 'TargetZone', attributes: ['id', 'name'] },
+                //     { model: Sector, as: 'TargetSector', attributes: ['id', 'name'] },
+                // ],
+                limit: parseInt(limit, 10),
+                offset: parseInt(offset, 10),
+                order: [['createdAt', 'DESC']],
+            };
+            const totalRequests = await TransferRequest.count({ where: queryOptions.where });
+            console.log(totalRequests, "total requests");
+            transferRequests = await TransferRequest.findAll(queryOptions);
+            console.log(transferRequests, "transfer requests");
+            return res.status(200).json({
+                message: 'Transfer requests fetched successfully',
+                data: transferRequests,
+                pagination: {
+                    page: parseInt(page, 10),
+                    limit: parseInt(limit, 10),
+                    total: totalRequests,
+                    totalPages: Math.ceil(totalRequests / limit),
+                },
+            });     
+           }
+        else if(currentUser?.sector?.Woreda){
+            const woreda_id = currentUser.sector.Woreda.woreda_id;
+            transferRequests = await TransferRequest.findAll({where:{status:"pending",target_woreda_id:woreda_id}});
+        }
+        else{
+            transferRequests = await TransferRequest.findAll({where:{status:"pending",requested_by:currentUser.user_id}});
+        }
+        return res.status(200).json(transferRequests);
+    } catch (error) {
+        next(error);
+    }
+}
 exports.getApprovedTransferRequest = async (req, res, next)=>{
     try {
         const currentUser = await User.findByPk(req.user_id, {
             include: [{
                 model: Sector,
                 as: "sector",
-                include: [{
-                    model: Zone,
-                }, {
-                    model: Woreda,
-                    include: {
-                        model: Zone,
-                        as: 'zone'
-                    }
-                }]
             }]
         });
-
         let transferRequests = [];
-        
-        // If user is in a Zone-level sector
-        if (currentUser?.sector?.Zone) {
+        if(currentUser?.sector?.Zone){
             const zone_id = currentUser.sector.Zone.zone_user_id;
-            
-            // Get all woredas under this zone
-            const woredas = await Woreda.findAll({
-                where: { zoneZoneUserId: zone_id }
-            });
-            const woreda_ids = woredas.map(woreda => woreda.woreda_id);
-
-            // Get all sectors under this zone (both direct and through woredas)
-            const sectors = await Sector.findAll({
-                where: {
-                    [Op.or]: [
-                        { zone_id: zone_id },
-                        { woreda_id: { [Op.in]: woreda_ids } }
-                    ]
-                }
-            });
-            const sector_ids = sectors.map(sector => sector.sector_id);
-
-            // Get transfer requests for all these sectors
-            transferRequests = await TransferRequest.findAll({
-                where: {
-                    sector_id: { [Op.in]: sector_ids },
-                    status: "approved"
-                },
+            const queryOptions = {
+                where: { 
+                    targetZoneId: zone_id,
+                    status:"pending"
+                 },
                 include: [
-                    {
-                        model: User,
-                        as: "user",
-                        attributes: ['username', 'email', 'phone_number']
-                    },
-                    {
-                        model: Sector,
-                        as: "sector",
-                        include: [
-                            { model: Zone },
-                            { model: Woreda }
-                        ]
-                    },
-                    {
-                        model: User,
-                        as: "requestedBy",
-                        attributes: ['username', 'email']
-                    }
-                ]
-            });
-        }
-        // If user is in a Woreda-level sector
-        else if (currentUser?.sector?.Woreda) {
+                    { model: User, attributes: ['id', 'name', 'email'] },
+                    { model: Zone, as: 'CurrentZone', attributes: ['id', 'name'] },
+                    { model: Zone, as: 'TargetZone', attributes: ['id', 'name'] },
+                    { model: Sector, as: 'TargetSector', attributes: ['id', 'name'] },
+                ],
+                limit: parseInt(limit, 10),
+                offset: parseInt(offset, 10),
+                order: [['createdAt', 'DESC']],
+            };
+            const totalRequests = await TransferRequest.count({ where: queryOptions.where });
+            transferRequests = await TransferRequest.findAll(queryOptions);
+            return res.status(200).json({
+                message: 'Transfer requests fetched successfully',
+                data: transferRequests,
+                pagination: {
+                    page: parseInt(page, 10),
+                    limit: parseInt(limit, 10),
+                    total: totalRequests,
+                    totalPages: Math.ceil(totalRequests / limit),
+                },
+            });     
+           }
+        else if(currentUser?.sector?.Woreda){
             const woreda_id = currentUser.sector.Woreda.woreda_id;
-            
-            // Get all sectors under this woreda
-            const sectors = await Sector.findAll({
-                where: { woreda_id: woreda_id }
-            });
-            const sector_ids = sectors.map(sector => sector.sector_id);
-
-            // Get transfer requests for sectors under this woreda
-            transferRequests = await TransferRequest.findAll({
-                where: {
-                    sector_id: { [Op.in]: sector_ids },
-                    status: "approved"
-                },
-                include: [
-                    {
-                        model: User,
-                        as: "user",
-                        attributes: ['username', 'email', 'phone_number']
-                    },
-                    {
-                        model: Sector,
-                        as: "sector",
-                        include: [
-                            { model: Zone },
-                            { model: Woreda }
-                        ]
-                    },
-                    {
-                        model: User,
-                        as: "requestedBy",
-                        attributes: ['username', 'email']
-                    }
-                ]
-            });
+            transferRequests = await TransferRequest.findAll({where:{status:"approved",target_woreda_id:woreda_id}});
         }
-        // For regular users, only show their own transfer requests
-        else {
-            transferRequests = await TransferRequest.findAll({
-                where: {
-                    requested_by: currentUser.user_id
-                },
-                include: [
-                    {
-                        model: User,
-                        as: "user",
-                        attributes: ['username', 'email', 'phone_number']
-                    },
-                    {
-                        model: Sector,
-                        as: "sector",
-                        include: [
-                            { model: Zone },
-                            { model: Woreda }
-                        ]
-                    }
-                ]
-            });
+        else{
+            transferRequests = await TransferRequest.findAll({where:{status:"approved",requested_by:currentUser.user_id}});
         }
-
         return res.status(200).json(transferRequests);
-        
     } catch (error) {
         next(error);
     }
 }
-
 exports.getRejectedTransferRequest = async (req, res, next)=>{
     try {
         const currentUser = await User.findByPk(req.user_id, {
             include: [{
                 model: Sector,
                 as: "sector",
-                include: [{
-                    model: Zone,
-                }, {
-                    model: Woreda,
-                    include: {
-                        model: Zone,
-                        as: 'zone'
-                    }
-                }]
             }]
         });
-
         let transferRequests = [];
-        
-        // If user is in a Zone-level sector
-        if (currentUser?.sector?.Zone) {
+        if(currentUser?.sector?.Zone){
             const zone_id = currentUser.sector.Zone.zone_user_id;
-            
-            // Get all woredas under this zone
-            const woredas = await Woreda.findAll({
-                where: { zoneZoneUserId: zone_id }
-            });
-            const woreda_ids = woredas.map(woreda => woreda.woreda_id);
-
-            // Get all sectors under this zone (both direct and through woredas)
-            const sectors = await Sector.findAll({
-                where: {
-                    [Op.or]: [
-                        { zone_id: zone_id },
-                        { woreda_id: { [Op.in]: woreda_ids } }
-                    ]
-                }
-            });
-            const sector_ids = sectors.map(sector => sector.sector_id);
-
-            // Get transfer requests for all these sectors
-            transferRequests = await TransferRequest.findAll({
-                where: {
-                    sector_id: { [Op.in]: sector_ids },
-                    status: "rejected"
-                },
+            const queryOptions = {
+                where: { 
+                    targetZoneId: zone_id,
+                    status:"pending"
+                 },
                 include: [
-                    {
-                        model: User,
-                        as: "user",
-                        attributes: ['username', 'email', 'phone_number']
-                    },
-                    {
-                        model: Sector,
-                        as: "sector",
-                        include: [
-                            { model: Zone },
-                            { model: Woreda }
-                        ]
-                    },
-                    {
-                        model: User,
-                        as: "requestedBy",
-                        attributes: ['username', 'email']
-                    }
-                ]
-            });
-        }
-        // If user is in a Woreda-level sector
-        else if (currentUser?.sector?.Woreda) {
+                    { model: User, attributes: ['id', 'name', 'email'] },
+                    { model: Zone, as: 'zone', attributes: ['id', 'name'] },
+                    { model: Zone, as: 'zone', attributes: ['id', 'name'] },
+                    { model: Sector, as: 'sector', attributes: ['id', 'name'] },
+                ],
+                limit: parseInt(limit, 10),
+                offset: parseInt(offset, 10),
+                order: [['createdAt', 'DESC']],
+            };
+            const totalRequests = await TransferRequest.count({ where: queryOptions.where });
+            transferRequests = await TransferRequest.findAll(queryOptions);
+            return res.status(200).json({
+                message: 'Transfer requests fetched successfully',
+                data: transferRequests,
+                pagination: {
+                    page: parseInt(page, 10),
+                    limit: parseInt(limit, 10),
+                    total: totalRequests,
+                    totalPages: Math.ceil(totalRequests / limit),
+                },
+            });     
+           }    
+        else if(currentUser?.sector?.Woreda){
             const woreda_id = currentUser.sector.Woreda.woreda_id;
-            
-            // Get all sectors under this woreda
-            const sectors = await Sector.findAll({
-                where: { woreda_id: woreda_id }
-            });
-            const sector_ids = sectors.map(sector => sector.sector_id);
-
-            // Get transfer requests for sectors under this woreda
-            transferRequests = await TransferRequest.findAll({
-                where: {
-                    sector_id: { [Op.in]: sector_ids },
-                    status: "rejected"
-                },
-                include: [
-                    {
-                        model: User,
-                        as: "user",
-                        attributes: ['username', 'email', 'phone_number']
-                    },
-                    {
-                        model: Sector,
-                        as: "sector",
-                        include: [
-                            { model: Zone },
-                            { model: Woreda }
-                        ]
-                    },
-                    {
-                        model: User,
-                        as: "requestedBy",
-                        attributes: ['username', 'email']
-                    }
-                ]
-            });
+            transferRequests = await TransferRequest.findAll({where:{status:"rejected",target_woreda_id:woreda_id}});
         }
-        // For regular users, only show their own transfer requests
-        else {
-            transferRequests = await TransferRequest.findAll({
-                where: {
-                    requested_by: currentUser.user_id
-                },
-                include: [
-                    {
-                        model: User,
-                        as: "user",
-                        attributes: ['username', 'email', 'phone_number']
-                    },
-                    {
-                        model: Sector,
-                        as: "sector",
-                        include: [
-                            { model: Zone },
-                            { model: Woreda }
-                        ]
-                    }
-                ]
-            });
+        else{
+            transferRequests = await TransferRequest.findAll({where:{status:"rejected",requested_by:currentUser.user_id}});
         }
-
         return res.status(200).json(transferRequests);
-        
     } catch (error) {
         next(error);
     }
 }
 
-exports.rejectTransferRequest = async (req, res, next)=>{
-    try {
-        const {transfer_request_id}=req.params;
-        const transferRequest = await TransferRequest.findByPk(transfer_request_id);
-        if (!transferRequest) {
-            throw new CustomError("Transfer Request Not Found", 404);
-        }   
-        transferRequest.status="rejected";
-        transferRequest.rejected_by=req.user_id;
-        transferRequest.rejected_at=new Date();
-        await transferRequest.save();
-        return res.status(200).json(transferRequest);
-    } catch (error) {
-        next(error);
-    }
-}
+// exports.getApprovedTransferRequest = async (req, res, next)=>{
+//     try {
+//         const currentUser = await User.findByPk(req.user_id, {
+//             include: [{
+//                 model: Sector,
+//                 as: "sector",
+//                 include: [{
+//                     model: Zone,
+//                 }, {
+//                     model: Woreda,
+//                     include: {
+//                         model: Zone,
+//                         as: 'zone'
+//                     }
+//                 }]
+//             }]
+//         });
+
+//         let transferRequests = [];
+        
+//         // If user is in a Zone-level sector
+//         if (currentUser?.sector?.Zone) {
+//             const zone_id = currentUser.sector.Zone.zone_user_id;
+            
+//             // Get all woredas under this zone
+//             const woredas = await Woreda.findAll({
+//                 where: { zoneZoneUserId: zone_id }
+//             });
+//             const woreda_ids = woredas.map(woreda => woreda.woreda_id);
+
+//             // Get all sectors under this zone (both direct and through woredas)
+//             const sectors = await Sector.findAll({
+//                 where: {
+//                     [Op.or]: [
+//                         { zone_id: zone_id },
+//                         { woreda_id: { [Op.in]: woreda_ids } }
+//                     ]
+//                 }
+//             });
+//             const sector_ids = sectors.map(sector => sector.sector_id);
+
+//             // Get transfer requests for all these sectors
+//             transferRequests = await TransferRequest.findAll({
+//                 where: {
+//                     sector_id: { [Op.in]: sector_ids },
+//                     status: "approved"
+//                 },
+//                 include: [
+//                     {
+//                         model: User,
+//                         as: "user",
+//                         attributes: ['username', 'email', 'phone_number']
+//                     },
+//                     {
+//                         model: Sector,
+//                         as: "sector",
+//                         include: [
+//                             { model: Zone },
+//                             { model: Woreda }
+//                         ]
+//                     },
+//                     {
+//                         model: User,
+//                         as: "requestedBy",
+//                         attributes: ['username', 'email']
+//                     }
+//                 ]
+//             });
+//         }
+//         // If user is in a Woreda-level sector
+//         else if (currentUser?.sector?.Woreda) {
+//             const woreda_id = currentUser.sector.Woreda.woreda_id;
+            
+//             // Get all sectors under this woreda
+//             const sectors = await Sector.findAll({
+//                 where: { woreda_id: woreda_id }
+//             });
+//             const sector_ids = sectors.map(sector => sector.sector_id);
+
+//             // Get transfer requests for sectors under this woreda
+//             transferRequests = await TransferRequest.findAll({
+//                 where: {
+//                     sector_id: { [Op.in]: sector_ids },
+//                     status: "approved"
+//                 },
+//                 include: [
+//                     {
+//                         model: User,
+//                         as: "user",
+//                         attributes: ['username', 'email', 'phone_number']
+//                     },
+//                     {
+//                         model: Sector,
+//                         as: "sector",
+//                         include: [
+//                             { model: Zone },
+//                             { model: Woreda }
+//                         ]
+//                     },
+//                     {
+//                         model: User,
+//                         as: "requestedBy",
+//                         attributes: ['username', 'email']
+//                     }
+//                 ]
+//             });
+//         }
+//         // For regular users, only show their own transfer requests
+//         else {
+//             transferRequests = await TransferRequest.findAll({
+//                 where: {
+//                     requested_by: currentUser.user_id
+//                 },
+//                 include: [
+//                     {
+//                         model: User,
+//                         as: "user",
+//                         attributes: ['username', 'email', 'phone_number']
+//                     },
+//                     {
+//                         model: Sector,
+//                         as: "sector",
+//                         include: [
+//                             { model: Zone },
+//                             { model: Woreda }
+//                         ]
+//                     }
+//                 ]
+//             });
+//         }
+
+//         return res.status(200).json(transferRequests);
+        
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+
+// exports.getRejectedTransferRequest = async (req, res, next)=>{
+//     try {
+//         const currentUser = await User.findByPk(req.user_id, {
+//             include: [{
+//                 model: Sector,
+//                 as: "sector",
+//                 include: [{
+//                     model: Zone,
+//                 }, {
+//                     model: Woreda,
+//                     include: {
+//                         model: Zone,
+//                         as: 'zone'
+//                     }
+//                 }]
+//             }]
+//         });
+
+//         let transferRequests = [];
+        
+//         // If user is in a Zone-level sector
+//         if (currentUser?.sector?.Zone) {
+//             const zone_id = currentUser.sector.Zone.zone_user_id;
+            
+//             // Get all woredas under this zone
+//             const woredas = await Woreda.findAll({
+//                 where: { zoneZoneUserId: zone_id }
+//             });
+//             const woreda_ids = woredas.map(woreda => woreda.woreda_id);
+
+//             // Get all sectors under this zone (both direct and through woredas)
+//             const sectors = await Sector.findAll({
+//                 where: {
+//                     [Op.or]: [
+//                         { zone_id: zone_id },
+//                         { woreda_id: { [Op.in]: woreda_ids } }
+//                     ]
+//                 }
+//             });
+//             const sector_ids = sectors.map(sector => sector.sector_id);
+
+//             // Get transfer requests for all these sectors
+//             transferRequests = await TransferRequest.findAll({
+//                 where: {
+//                     sector_id: { [Op.in]: sector_ids },
+//                     status: "rejected"
+//                 },
+//                 include: [
+//                     {
+//                         model: User,
+//                         as: "user",
+//                         attributes: ['username', 'email', 'phone_number']
+//                     },
+//                     {
+//                         model: Sector,
+//                         as: "sector",
+//                         include: [
+//                             { model: Zone },
+//                             { model: Woreda }
+//                         ]
+//                     },
+//                     {
+//                         model: User,
+//                         as: "requestedBy",
+//                         attributes: ['username', 'email']
+//                     }
+//                 ]
+//             });
+//         }
+//         // If user is in a Woreda-level sector
+//         else if (currentUser?.sector?.Woreda) {
+//             const woreda_id = currentUser.sector.Woreda.woreda_id;
+            
+//             // Get all sectors under this woreda
+//             const sectors = await Sector.findAll({
+//                 where: { woreda_id: woreda_id }
+//             });
+//             const sector_ids = sectors.map(sector => sector.sector_id);
+
+//             // Get transfer requests for sectors under this woreda
+//             transferRequests = await TransferRequest.findAll({
+//                 where: {
+//                     sector_id: { [Op.in]: sector_ids },
+//                     status: "rejected"
+//                 },
+//                 include: [
+//                     {
+//                         model: User,
+//                         as: "user",
+//                         attributes: ['username', 'email', 'phone_number']
+//                     },
+//                     {
+//                         model: Sector,
+//                         as: "sector",
+//                         include: [
+//                             { model: Zone },
+//                             { model: Woreda }
+//                         ]
+//                     },
+//                     {
+//                         model: User,
+//                         as: "requestedBy",
+//                         attributes: ['username', 'email']
+//                     }
+//                 ]
+//             });
+//         }
+//         // For regular users, only show their own transfer requests
+//         else {
+//             transferRequests = await TransferRequest.findAll({
+//                 where: {
+//                     requested_by: currentUser.user_id
+//                 },
+//                 include: [
+//                     {
+//                         model: User,
+//                         as: "user",
+//                         attributes: ['username', 'email', 'phone_number']
+//                     },
+//                     {
+//                         model: Sector,
+//                         as: "sector",
+//                         include: [
+//                             { model: Zone },
+//                             { model: Woreda }
+//                         ]
+//                     }
+//                 ]
+//             });
+//         }
+
+//         return res.status(200).json(transferRequests);
+        
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+
+// exports.rejectTransferRequest = async (req, res, next)=>{
+//     try {
+//         const {transfer_request_id}=req.params;
+//         const transferRequest = await TransferRequest.findByPk(transfer_request_id);
+//         if (!transferRequest) {
+//             throw new CustomError("Transfer Request Not Found", 404);
+//         }   
+//         transferRequest.status="rejected";
+//         transferRequest.rejected_by=req.user_id;
+//         transferRequest.rejected_at=new Date();
+//         await transferRequest.save();
+//         return res.status(200).json(transferRequest);
+//     } catch (error) {
+//         next(error);
+//     }
+// }
 
 // Suspend User
 exports.suspendUser = async (req, res, next) => {

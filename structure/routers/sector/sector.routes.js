@@ -110,6 +110,7 @@ router.get("/get",checkPermission('can_view_sector'), findAll);
  *               role: {}
  */
 router.get("/get/:sector_id",checkPermission('can_view_sector'), findOne);
+router.get("/get/all",checkPermission('can_view_sector'), findAll);
 /**
  * @swagger
  * /structure/sector/delete/{sector_id}:
