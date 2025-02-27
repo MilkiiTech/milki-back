@@ -2,10 +2,11 @@ const CustomError = require("../../error/customError");
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const config = require('../../config/config');
-const {Role, User, Sector, Group, Zone, Woreda, TransferRequest}=require("../models/association")
+const {Role, User, Sector, Group, Zone, Woreda, TransferRequest}=require("../models/association");
+const TransferLog = require("../models/TransferLog");
 const Permission = require("../models/permission");
 const {generatePassword}= require("../../utils/utils")
-const {Op}=require("sequelize");
+const {Op, INTEGER}=require("sequelize");
 const sequelize = require("../../config/db");
 const crypto = require('crypto');
 const { sendEmail } = require('../../utils/email'); // You'll need to implement this
@@ -526,23 +527,46 @@ exports.transferRequest = async (req, res, next)=>{
 }
 exports.acceptTransferRequest= async(req,res,next)=>{
     try {
-        const {transfer_request_id, targetSectorId }=req.params;
+        const {transfer_request_id, targetSectorId }=req.body;
         const transferRequest = await TransferRequest.findByPk(transfer_request_id);
+        const currentUser = await User.findByPk(req.user_id, {
+            include:{
+            model:Sector,
+            as:"sector",
+            include:[
+                {
+                    model:Zone,
+                    
+                },
+                {
+                    model:Woreda,
+                    include:{
+                        model:Zone,
+                        as:'zone'
+                    }
+                }
+            ],
+            
+          }});
         if (!transferRequest || transferRequest.status !== "pending") {
             throw new CustomError("Transfer Request Not Found or Already Approved", 404);
         }
         const targetSector = await Sector.findByPk(targetSectorId);
-        if (!targetSector || targetSector.woreda.zone_id.toString() !== transferRequest.target_zone_id.toString()) {
-            return res.status(400).json({ message: 'Target sector does not belong to the target zone' });
-        }
+        console.log(targetSector, "target sector")
+
+        // if (!targetSector || targetSector.sector_tye.zone_id.toString() !== transferRequest.target_zone_id.toString()) {
+        //     return res.status(400).json({ message: 'Target sector does not belong to the target zone' });
+        // }
        // Update transfer request
         transferRequest.target_sector_id = targetSectorId;
-        transferRequest.status = 'accepted';
+        transferRequest.status = 'approved';
         transferRequest.updated_at = new Date();
+        transferRequest.approved_at = new Date();
+        transferRequest.approved_by = req.user_id;
         await transferRequest.save();
 
         // Update user's sector
-        const user = await User.findById(transferRequest.user_id);
+        const user = await User.findByPk(transferRequest.user_id);
         user.sector_id = targetSectorId;
         await user.save();
 
@@ -552,7 +576,7 @@ exports.acceptTransferRequest= async(req,res,next)=>{
             old_sector_id: user.sector_id,
             new_sector_id: targetSectorId,
             transfer_request_id: transfer_request_id,
-            timestamp: new Date(),
+            time_stamp: new Date(),
         });
 
         await transferRequest.save();

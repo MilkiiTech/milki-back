@@ -7,43 +7,30 @@ const TransferLog = sequelize.define("TransferLog", {
     transfer_log_id: {
       type: DataTypes.UUID,
       primaryKey: true,
-      autoIncrement: true,
-    },
+defaultValue:Sequelize.UUIDV4,    },
     transfer_request_id: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: TransferRequest,
-        key: 'transfer_request_id'
-      }
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      
     },
     user_id:{
         type:DataTypes.UUID,
-        allowNull:false,
-        references: {
-            model: User,
-            key: 'user_id'
-          }
+        allowNull:true,
+        
     },
     old_sector_id:{
         type:DataTypes.UUID,
-        allowNull:false,
-        references: {
-            model: Sector,
-            key: 'sector_id'
-          }
+        allowNull:true,
+       
     },
     new_sector_id:{
         type:DataTypes.UUID,
-        allowNull:false,
-        references: {
-            model: Sector,
-            key: 'sector_id'
-          }
+        allowNull:true,
+        
     },
-    time_stamp:{
+    timestamp:{
         type:DataTypes.DATE,
-        allowNull:false
+        allowNull:true
     }
 })
 

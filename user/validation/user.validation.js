@@ -282,7 +282,7 @@ const transferRequestValidation = (req, res, next) => {
 
 const acceptTransferRequestValidation = (req, res, next) => {
   const schema = Joi.object({
-    transfer_request_id: Joi.string().guid({version:"uuidv4"}).required(),
+    transfer_request_id: Joi.string().required(),
     targetSectorId:Joi.string().guid({version:"uuidv4"}).required(),  })
   const {error} = schema.validate(req.body);
   if(error){
