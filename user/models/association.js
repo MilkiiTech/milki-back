@@ -40,7 +40,6 @@ User.belongsTo(Sector, {foreignKey:'sector_id', as:"sector"});
 TransferRequest.belongsTo(User, {
     foreignKey: 'user_id', 
     as: "user",
-    through: 'UserTransferRequests'
 });
 TransferRequest.belongsTo(Sector, {
     foreignKey: 'sector_id', 
@@ -63,6 +62,16 @@ TransferRequest.belongsTo(User, {
     foreignKey: 'rejected_by', 
     as: "rejectedBy",
     through: 'UserTransferRequests'
+});
+
+TransferRequest.belongsTo(Zone, {
+    foreignKey: 'current_zone_id', 
+    as: "currentZone",
+});
+
+TransferRequest.belongsTo(Zone, {
+    foreignKey: 'target_zone_id', 
+    as: "targetZone",
 });
 
 

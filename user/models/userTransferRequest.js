@@ -14,6 +14,7 @@ const transferRequest = sequelize.define("UserTransferRequest", {
     current_zone_id: {
       type: DataTypes.UUID,
       allowNull: true,
+      
     },
     target_zone_id: {
       type: DataTypes.UUID,

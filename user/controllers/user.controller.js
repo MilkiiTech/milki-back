@@ -778,7 +778,8 @@ exports.getPendingTransferRequest = async (req, res, next)=>{
             const queryOptions = {
                 where: { 
                     target_zone_id: zone_id,
-                    status:"pending"
+                    status:"pending",
+                    requested_by:{[Op.ne]:currentUser.user_id}
                  },
                 // include: [
                 //     { model: User, attributes: ['id', 'name', 'email'] },
@@ -818,6 +819,8 @@ exports.getPendingTransferRequest = async (req, res, next)=>{
     }
 }
 exports.getApprovedTransferRequest = async (req, res, next)=>{
+    const { page = 1, limit = 10 } = req.query;
+        const offset = (page - 1) * limit;
     try {
         const currentUser = await User.findByPk(req.user_id, {
             include: [{
@@ -826,18 +829,17 @@ exports.getApprovedTransferRequest = async (req, res, next)=>{
             }]
         });
         let transferRequests = [];
-        if(currentUser?.sector?.Zone){
-            const zone_id = currentUser.sector.Zone.zone_user_id;
+        if(currentUser?.sector?.sector_type=="Zone"){
+            const zone_id = currentUser.sector.zone_id;
             const queryOptions = {
                 where: { 
-                    targetZoneId: zone_id,
-                    status:"pending"
+                    target_zone_id: zone_id,
+                    status:"approved"
                  },
                 include: [
-                    { model: User, attributes: ['id', 'name', 'email'] },
-                    { model: Zone, as: 'CurrentZone', attributes: ['id', 'name'] },
-                    { model: Zone, as: 'TargetZone', attributes: ['id', 'name'] },
-                    { model: Sector, as: 'TargetSector', attributes: ['id', 'name'] },
+                    { model: User, as:"user", attributes: ['user_id', 'first_name', 'last_name', 'email'] },
+                    { model: Zone, as:"currentZone", attributes: ['zone_user_id', 'zone_name'] },
+                    { model: Zone, as:"targetZone", attributes: ['zone_user_id', 'zone_name'] },
                 ],
                 limit: parseInt(limit, 10),
                 offset: parseInt(offset, 10),
@@ -869,6 +871,8 @@ exports.getApprovedTransferRequest = async (req, res, next)=>{
     }
 }
 exports.getRejectedTransferRequest = async (req, res, next)=>{
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
     try {
         const currentUser = await User.findByPk(req.user_id, {
             include: [{
@@ -877,18 +881,16 @@ exports.getRejectedTransferRequest = async (req, res, next)=>{
             }]
         });
         let transferRequests = [];
-        if(currentUser?.sector?.Zone){
-            const zone_id = currentUser.sector.Zone.zone_user_id;
+        if(currentUser?.sector?.sector_type=="Zone"){
+            const zone_id = currentUser.sector.zone_id;
             const queryOptions = {
                 where: { 
-                    targetZoneId: zone_id,
-                    status:"pending"
+                    target_zone_id: zone_id,
+                    status:"rejected"
                  },
                 include: [
-                    { model: User, attributes: ['id', 'name', 'email'] },
-                    { model: Zone, as: 'zone', attributes: ['id', 'name'] },
-                    { model: Zone, as: 'zone', attributes: ['id', 'name'] },
-                    { model: Sector, as: 'sector', attributes: ['id', 'name'] },
+                    { model: User,as:"user", attributes: ['user_id', 'first_name',"last_name", 'email'] },
+                   
                 ],
                 limit: parseInt(limit, 10),
                 offset: parseInt(offset, 10),
