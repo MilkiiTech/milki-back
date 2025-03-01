@@ -178,7 +178,7 @@ const createUserValidation = (req, res, next) => {
     first_name: Joi.string().required(),
     middle_name: Joi.string().optional(),
     last_name: Joi.string().required(),
-    nationality: Joi.string().required(),
+    placeOfBirth: Joi.array().required(),
     marital_status: Joi.string().optional(),
     gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER').required(),
     date_of_birth: Joi.date().optional(),
