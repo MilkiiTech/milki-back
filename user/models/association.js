@@ -9,6 +9,9 @@ const Work=require("../../structure/models/work")
 const WeeklyTask = require("../../structure/models/weeklyTask");
 const SectorWork=require("../../structure/models/sectorWork");
 const TransferRequest = require("./userTransferRequest");
+const MonthlyTask = require("../../structure/models/monthlyTasks");
+const WeeklyTasks = require("../../structure/models/weeklyTasks");
+const Works = require("../../structure/models/works");
 // Define the association of Users to Roles
 Role.belongsToMany(User, { through: 'UsersRoles' });
 User.belongsToMany(Role, { through: 'UsersRoles' });
@@ -132,9 +135,25 @@ WeeklyTask.afterUpdate(async (task, options) => {
     console.log(progress, "progress that needs to be updated");
     await work.update({ progress });
   });
+
+//  Refiened Works, MonthlyTask and WeeklyTasks Association
+Works.belongsTo(Zone, {foreignKey:'zone_id'});
+Works.hasMany(MonthlyTask, {foreignKey:'workId'});
+MonthlyTask.belongsTo(Works, {foreignKey:'workId'});
+MonthlyTask.hasMany(WeeklyTasks, {foreignKey:'monthlyTaskId'});
+WeeklyTasks.belongsTo(MonthlyTask, {foreignKey:'monthlyTaskId'});
+WeeklyTasks.belongsTo(User, {foreignKey:'assignedTo'});
+
+// create an association for Works, MonthlyTask and WeeklyTasks
+Works.belongsTo(User, {foreignKey:'createdBy'});
+Works.belongsTo(User, {foreignKey:'updatedBy'});
+MonthlyTask.belongsTo(User, {foreignKey:'createdBy'});
+MonthlyTask.belongsTo(User, {foreignKey:'updatedBy'});
+WeeklyTasks.belongsTo(User, {foreignKey:'createdBy'});
+WeeklyTasks.belongsTo(User, {foreignKey:'updatedBy'});
   
 
-module.exports = { User, Role, Permission, Zone, Woreda , Sector, Group, Work, WeeklyTask, TransferRequest};
+module.exports = { User, Role, Permission, Zone, Woreda , Sector, Group, Work, WeeklyTask, TransferRequest, Works, MonthlyTask, WeeklyTasks};
 
 
 

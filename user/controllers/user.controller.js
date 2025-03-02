@@ -10,6 +10,7 @@ const {Op, INTEGER}=require("sequelize");
 const sequelize = require("../../config/db");
 const crypto = require('crypto');
 const { sendEmail } = require('../../utils/email'); // You'll need to implement this
+const { SourceTextModule } = require("vm");
 
 // user signup controller 
 exports.registerUser = async (req, res, next)=>{
@@ -255,13 +256,13 @@ exports.assignRoleToUser = async (req, res,  next)=>{
 exports.createUser = async (req, res, next)=>{
     try {
         let transaction;
-        const {employee_id, first_name, last_name, middle_name,nationality,marital_status,gender,date_of_birth,address,city,area,houseNo, email, phone_number, sector_id, role_id}=req.body;
+        const {employee_id, first_name, last_name, middle_name,placeOfBirth,marital_status,gender,date_of_birth,address,city,area,houseNo, email, phone_number, sector_id, role_id}=req.body;
         let password = generatePassword().toString();
-
+        console.log(address)
         let modifiedAddress = address.join(", ");  // This will create: "Ethiopia, Oromia Region"
         console.log(modifiedAddress, "newAddress")
         let newAddress = modifiedAddress+", "+city+", "+area+", "+houseNo;
-        let placeOfBirth = placeOfBirth.join(", ");
+        let newPlceOfBirth = placeOfBirth.join(", ");
         const hashed_password=await bcrypt.hash(password, 10);
         transaction=sequelize.transaction();
         const result = await sequelize.transaction(async(t)=>{
@@ -280,7 +281,7 @@ exports.createUser = async (req, res, next)=>{
                 first_name,
                 last_name,
                 middle_name,
-                nationality:placeOfBirth,
+                nationality:newPlceOfBirth,
                 marital_status,
                 gender,
                 date_of_birth,
