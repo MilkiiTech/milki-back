@@ -21,10 +21,10 @@ const app = express();
 app.use(helmet());
 app.disable("x-powered-by");
 app.use(compression());
-app.use(bodyParser.json({limit: '50mb'}));
-app.use(bodyParser.json({limit: '50mb'}));
-app.use(bodyParser.urlencoded({limit: '50mb'}));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
   cookieSession({
@@ -34,7 +34,26 @@ app.use(
 );
 const specs = swaggerJsdoc(options);
 
-app.use(cors("*"));
+// app.use(cors("*"));
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://your-production-domain.com',
+  // Add other allowed origins as needed
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/user", user);
 app.use("/api/structure", structure);

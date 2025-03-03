@@ -171,6 +171,7 @@ const assignRoleToUserValidation = (req, res, next) => {
 const createUserValidation = (req, res, next) => {
   // Define phone pattern
   const phonePattern = /^(\+251|0)9\d{8}$/;
+  console.log(req.body, "req.body")
 
   // Define Joi schema for the form data (excluding files)
   const schema = Joi.object({

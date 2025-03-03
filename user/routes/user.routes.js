@@ -26,7 +26,8 @@ const {
   suspendUser,
   requestPasswordReset,
   resetPassword,
-  acceptTransferRequest
+  acceptTransferRequest,
+  getFile
 
 } = require("../controllers/user.controller");
 const {
@@ -383,8 +384,8 @@ router.post("/assignRolePermission",checkPermission('can_view_permission'), assi
 router.patch("/suspend/:user_id",checkPermission('can_update_user'),suspendUser)
 router.patch("/activate/:user_id",checkPermission('can_update_user'),activateUser)
 router.post("/requestPasswordReset",requestPasswordReset)
-router.patch("/resetPassword/:resetToken",resetPassword)
-
+router.patch("/resetPassword/:resetToken",resetPassword);
+router.get("/get-file/:filename",getFile)
 
 
 

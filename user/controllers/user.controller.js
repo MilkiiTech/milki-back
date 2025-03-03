@@ -11,6 +11,7 @@ const sequelize = require("../../config/db");
 const crypto = require('crypto');
 const { sendEmail } = require('../../utils/email'); // You'll need to implement this
 const { SourceTextModule } = require("vm");
+const fs = require('fs').promises;
 
 // user signup controller 
 exports.registerUser = async (req, res, next)=>{
@@ -469,6 +470,16 @@ exports.getUserById = async (req, res, next)=>{
 
         });
         return res.status(200).json(user);
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+}
+exports.getFile = async (req, res, next)=>{
+    try {
+        const {filename}=req.params;
+        const file = await fs.readFile(filename);
+        return res.status(200).json(file);
     } catch (error) {
         console.log(error);
         next(error);
