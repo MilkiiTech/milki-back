@@ -21,10 +21,10 @@ const app = express();
 app.use(helmet());
 app.disable("x-powered-by");
 app.use(compression());
-app.use(bodyParser.json());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb'}));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 app.use(
   cookieSession({
