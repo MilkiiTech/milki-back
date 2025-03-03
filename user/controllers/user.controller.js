@@ -260,7 +260,6 @@ exports.createUser = async (req, res, next)=>{
         let password = generatePassword().toString();
         console.log(address)
         let modifiedAddress = address.join(", ");  // This will create: "Ethiopia, Oromia Region"
-        console.log(modifiedAddress, "newAddress")
         let newAddress = modifiedAddress+", "+city+", "+area+", "+houseNo;
         let newPlceOfBirth = placeOfBirth.join(", ");
         const hashed_password=await bcrypt.hash(password, 10);
